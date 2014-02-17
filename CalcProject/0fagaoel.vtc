@@ -1,0 +1,34 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+
+//A questa classe vengono passate solo stringhe già controllate
+//e funzionanti
+
+namespace CalcProject {
+    class cTable {
+        public int nVars { get { return iMax; } }
+
+
+        string[] sFunzioni;
+        int iMax = 0;
+        List<String[]> sVars = new List<string[]>();
+        public cTable(string[] sFunzioni) {
+            this.sFunzioni = sFunzioni;
+
+            //sFunzioni[0] = 3x1-3x2-4x3
+            //sVars[0] = {3x1, -3x2, -4x3}
+            for (int i = 0; i < sFunzioni.Length; i++ ) {
+                sVars.Add(Regex.Split(sFunzioni[i], "?=[-+]"));
+            }
+
+            //Prendo il massimo di variabili di base nel sistema
+            for (int i = 0; i < sVars.Count; i++) { 
+                iMax = Math.Max(sVars[i].Length, iMax); 
+            }
+            
+        }
+    }
+}
