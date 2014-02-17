@@ -33,7 +33,7 @@ namespace CalcProject {
 
                 for (int j = 0; j < tmp.Length; j++) {
                     if (!tmp[j].Contains("<=")) //Questo blocca il ciclo a fine espressione sinistra
-                    { tmp[j] = tmp[j].Remove(tmp[j].LastIndexOf('x')); }
+                    { tmp[j] = tmp[j].Remove(tmp[j].LastIndexOf('-x')); }
                 }
                 sNumbers.Add(tmp);
             }
@@ -63,7 +63,7 @@ namespace CalcProject {
                 int index = sFunzione.IndexOf('<');
                 index = index--;
 
-                return sFunzione.Insert(index, "-x" + iSMax);                
+                return sFunzione.Insert(index, "x" + iSMax);                
             }
             return "Errore";
         }

@@ -63,7 +63,7 @@ namespace CalcProject {
                 int index = sFunzione.IndexOf('<');
                 index = index--;
 
-                return sFunzione.Insert(index, "-x" + iSMax);                
+                return sFunzione.Insert(index, "x" + iSMax);                
             }
             return "Errore";
         }
