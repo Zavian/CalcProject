@@ -29,7 +29,7 @@ namespace CalcProject {
                 //http://regex101.com/
                 string[] tmp = Regex.Split(sFunzioni[i], "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
                 tmp = tmp.Where(x => !string.IsNullOrEmpty(x)).ToArray();
-                //sVars.Add(tmp);
+                sVars.Add(tmp);
 
                 for (int j = 0; j < tmp.Length; j++) {
                     if (!tmp[j].Contains("<=")) //Questo blocca il ciclo a fine espressione sinistra
