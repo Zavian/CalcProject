@@ -56,15 +56,10 @@ namespace CalcProject {
 
             //Popolamento tabella
             for (int r = 0; r < t.Functions.Length /*Da aggiungere il +1 per Cj */; r++) {
-                //t.nVars per far si che riempisse tutte le caselle delle var decisionali
-                //+1 per riempire quella dello scarto
-                for (int c = 0; c < t.nVars + 1; c++) {
+                for (int c = 0; c < t.nSVars - 1; c++) {
                     if(c < t.nVars) dg[c + 2, r].Value = t.coefficientTerms[r][c];
                     else { //Ho scritto tutti i coefficienti
                         dg[c + 2 + r, r].Value = 1;
-                        //c + 2 per il fatto delle prime due da non contare
-                        //+ r per contare a che funzione sono arrivato
-                        //quindi per arrivare all'nesimo scarto
                     }
                 }
             }

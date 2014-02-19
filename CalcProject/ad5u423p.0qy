@@ -10,10 +10,8 @@ using System.Text.RegularExpressions;
 namespace CalcProject {
     class cTable {
         public int nVars { get { return iBMax; } }
-        public int nSVars { get { return iSMax; } }
-        
 
-        public List<String[]> coefficientTerms { get { return sNumbers; } }
+        public List<String[]> Numbers { get { return sNumbers; } }
 
         public string[] Functions { get { return sFunzioni; } }
 
@@ -21,28 +19,21 @@ namespace CalcProject {
         int iBMax = 0;
         int iSMax = 0;
         List<String[]> sVars = new List<string[]>();
-        List<String[]> sNumbers = new List<String[]>();
-        public cTable(string Z, string[] sFunzioni) {
+        List<String[]> sNumbers = new List<string[]>();
+        public cTable(string[] sFunzioni) {
             this.sFunzioni = sFunzioni;
 
             //sFunzioni[0] = 3x1-3x2-4x3
             //sVars[0] = {3x1, -3x2, -4x3}
             for (int i = 0; i < sFunzioni.Length; i++) {
                 //http://regex101.com/
-
-                //Selezione dei termini singoli della funzione
                 string[] tmp = Regex.Split(sFunzioni[i], "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
                 tmp = tmp.Where(x => !string.IsNullOrEmpty(x)).ToArray();
                 sVars.Add(tmp);
 
-                
-                //Selezione dei termini noti della funzione
-                //tmp1 = variabile finale
                 for (int j = 0; j < tmp.Length; j++) {
                     if (!tmp[j].Contains("<=")) //Questo blocca il ciclo a fine espressione sinistra
-                    {
-                        tmp[j] = tmp[j].Remove(tmp[j].LastIndexOf('x'));
-                    }
+                    { tmp[j] = tmp[j].Remove(tmp[j].LastIndexOf('x')); }
                 }
                 sNumbers.Add(tmp);
             }

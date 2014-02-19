@@ -30,15 +30,16 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.nuovoSistemaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aiutoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.txtZ = new System.Windows.Forms.TextBox();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // rExpressions
             // 
             this.rExpressions.BackColor = System.Drawing.Color.White;
-            this.rExpressions.Location = new System.Drawing.Point(64, 37);
+            this.rExpressions.Location = new System.Drawing.Point(64, 58);
             this.rExpressions.Name = "rExpressions";
-            this.rExpressions.Size = new System.Drawing.Size(422, 201);
+            this.rExpressions.Size = new System.Drawing.Size(422, 180);
             this.rExpressions.TabIndex = 0;
             this.rExpressions.Text = "";
             // 
@@ -55,9 +56,9 @@
             // 
             this.label2.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 120F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(-27, 30);
+            this.label2.Location = new System.Drawing.Point(-27, 37);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(90, 182);
+            this.label2.Size = new System.Drawing.Size(90, 208);
             this.label2.TabIndex = 2;
             this.label2.Text = "{";
             // 
@@ -94,11 +95,22 @@
             this.aiutoToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
             this.aiutoToolStripMenuItem.Text = "Aiuto";
             // 
+            // txtZ
+            // 
+            this.txtZ.Location = new System.Drawing.Point(64, 32);
+            this.txtZ.Name = "txtZ";
+            this.txtZ.Size = new System.Drawing.Size(422, 20);
+            this.txtZ.TabIndex = 5;
+            this.txtZ.Text = "Inserire la funzione Z";
+            this.txtZ.Enter += new System.EventHandler(this.txtZ_Enter);
+            this.txtZ.Leave += new System.EventHandler(this.txtZ_Leave);
+            // 
             // mainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(545, 308);
+            this.Controls.Add(this.txtZ);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
@@ -123,6 +135,7 @@
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem nuovoSistemaToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aiutoToolStripMenuItem;
+        private System.Windows.Forms.TextBox txtZ;
     }
 }
 

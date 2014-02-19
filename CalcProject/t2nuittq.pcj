@@ -15,8 +15,7 @@ namespace CalcProject {
         }
 
         private void button1_Click(object sender, EventArgs e) {
-            string[] s = new string[] { "3x1-3x2-4x3<=360", "2x1+3x2-4x3<=100", 
-            "3x1-3x2-4x3<=360", "2x1+3x2-4x3<=100"};
+            string[] s = new string[] { "3x1-3x2-4x3<=360", "2x1+3x2-4x3<=100" };
             cTable t = new cTable(txtZ.Text, s);
             rExpressions.Visible = label1.Visible = label2.Visible =  button1.Visible = txtZ.Visible = false;
 
@@ -24,49 +23,14 @@ namespace CalcProject {
             DataGridView dg = new DataGridView();
             //CB, Base, Var decisionali + Var scarto, B
             dg.ColumnCount = 3 + t.nSVars;
-            dg.RowCount = t.Functions.Length + 2;
-            //i = 2; le prime due non le conta, Columns.Count - 1; l'ultima non la conta
-            for (int i = 2; i < dg.Columns.Count - 1; i++) {
-                for (int j = 0; j < t.Functions.Length; j++) {
-                    dg.Rows[j].Cells[i].Value = "0";
-                }
-            }
-            for (int i = 0; i < dg.Columns.Count; i++) { dg.Columns[i].Width = 50; }
+            dg.RowCount = t.Functions.Length + 1;
             dg.Location = new Point(rExpressions.Location.X - 5, rExpressions.Location.Y);
             dg.Size = new Size(rExpressions.Size.Width, rExpressions.Size.Height);
-            dg.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left;
-            dg.Columns[0].HeaderText = "Cb";
-            dg.Columns[1].HeaderText = /* All your */"Base" /* are belong to us */;
             this.Controls.Add(dg);
-            for (int i = 0; i < t.nSVars; i++) {
-                dg.Columns[i+2].HeaderText = "x" + (i + 1);
-            }
-            dg.Columns[t.nSVars + 2].HeaderText = "b";
-            
 
-            
-
-            //Riempimento prime due colonne
             for (int i = 0; i < t.Functions.Length; i++) {
                 dg[0, i].Value = 0;
-                dg[1, i].Value = "x" + (t.nVars + (1 + i));
-            }
-            dg[1, t.Functions.Length].Value = "Cj"; //GTA San Andreas cit.
-            dg[1, t.Functions.Length + 1].Value = "SAB";
-
-            //Popolamento tabella
-            for (int r = 0; r < t.Functions.Length /*Da aggiungere il +1 per Cj */; r++) {
-                //t.nVars per far si che riempisse tutte le caselle delle var decisionali
-                //+1 per riempire quella dello scarto
-                for (int c = 0; c < t.nVars + 1; c++) {
-                    if(c < t.nVars) dg[c + 2, r].Value = t.coefficientTerms[r][c];
-                    else { //Ho scritto tutti i coefficienti
-                        dg[c + 2 + r, r].Value = 1;
-                        //c + 2 per il fatto delle prime due da non contare
-                        //+ r per contare a che funzione sono arrivato
-                        //quindi per arrivare all'nesimo scarto
-                    }
-                }
+                dg[1, i].Value = "x" + (t.Functions.Length + (1 + i));
             }
 
 
