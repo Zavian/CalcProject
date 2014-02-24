@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,7 +14,7 @@ namespace CalcProject {
         
 
         public List<String[]> coefficientTerms { get { return sNumbers; } }
-
+        public List<String[]> Vars { get { return sVars; } }
         public string[] Functions { get { return sFunzioni; } }
 
         string[] sFunzioni;
@@ -41,11 +41,8 @@ namespace CalcProject {
                 
                 //Selezione dei termini noti della funzione
                 //tmp1 = variabile finale
-                for (int j = 0; j < tmp.Length; j++) {
-                    if (!tmp[j].Contains("<=")) //Questo blocca il ciclo a fine espressione sinistra
-                    {
-                        tmp[j] = tmp[j].Remove(tmp[j].LastIndexOf('x'));
-                    }
+                for (int j = 0; j < tmp.Length - 1; j++) {
+                    tmp[j] = tmp[j].Remove(tmp[j].LastIndexOf('x'));
                 }
                 sNumbers.Add(tmp);
             }
