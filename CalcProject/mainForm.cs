@@ -69,7 +69,9 @@ namespace CalcProject {
                 }
             }
 
-
+            for (int r = 0; r < t.Vars.Count; r++) {
+                dg[dg.Columns.Count - 1, r].Value = t.Vars[r][3];
+            }
             //for (int i = 0; i < t.Numbers.Count; i++) {
             //    string tmp = "";
             //    for (int j = 0; j < t.Numbers[i].Length; j++) {
