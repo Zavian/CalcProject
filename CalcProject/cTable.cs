@@ -33,6 +33,9 @@ namespace CalcProject {
                 //Selezione dei termini singoli della funzione
                 string[] tmp = Regex.Split(sFunzioni[i], "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
                 tmp = tmp.Where(x => !string.IsNullOrEmpty(x)).ToArray();
+                tmp[tmp.Length - 1] = tmp[tmp.Length - 1].Replace("=", "");
+                tmp[tmp.Length - 1] = tmp[tmp.Length - 1].Replace("<", "");
+                tmp[tmp.Length - 1] = tmp[tmp.Length - 1].Replace(">", "");
                 sVars.Add(tmp);
 
                 
