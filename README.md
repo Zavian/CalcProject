@@ -1,10 +1,11 @@
-CalcProject (by Emanuele.Sbabo@gmail.com )
-===========================================
+CalcProject
+===========
 
 Progetto Calcolo  2013-2014 (Calcolo Simplesso)
+**emanuele.sbabo@gmail.com**
 
 CHANGELOG
-17/02/2014 - Inizio del progetto, creazione della classe cTable, che gestirà tutti i dati ricevuti in ingresso dal sistema, che verrà creato all'inizio del programma.
+17/02/2014 - Inizio del progetto, creazione della classe cTable, che gestirï¿½ tutti i dati ricevuti in ingresso dal sistema, che verrï¿½ creato all'inizio del programma.
 Inizio abbozzo interfaccia della mainForm.
 19/02/2014 - Popolazione tabella. 
 Completata scrittura delle variabili di scarto, da scrivere la Z
