@@ -9,21 +9,50 @@ using System.Text.RegularExpressions;
 
 namespace CalcProject {
     class cTable {
-        public int nVars { get { return iBMax; } }
-        public int nSVars { get { return iSMax; } }
-        
 
+        /// <summary>
+        /// Ricevi il numero delle variabili decisionali
+        /// </summary>
+        public int nVariabili { get { return iBMax; } }
+        /// <summary>
+        /// Ricevi il numero delle variabili totali
+        /// </summary>
+        public int nVariabiliScarto { get { return iSMax; } }
+        
+        /// <summary>
+        /// Ricevi la lista dei coefficienti
+        /// </summary>
         public List<String[]> coefficientTerms { get { return sNumbers; } }
+        /// <summary>
+        /// Ricevi la lista delle variabili decisionali
+        /// </summary>
         public List<String[]> Vars { get { return sVars; } }
+        /// <summary>
+        /// Ricevi l'array di stringhe delle funzioni
+        /// </summary>
         public string[] Functions { get { return sFunzioni; } }
 
+        string sFunzioneZ;
         string[] sFunzioni;
         int iBMax = 0;
         int iSMax = 0;
         List<String[]> sVars = new List<string[]>();
         List<String[]> sNumbers = new List<String[]>();
+
+        /// <summary>
+        /// Inizializzazione oggetto
+        /// </summary>
+        /// <param name="Z">Stringa Z</param>
+        /// <param name="sFunzioni">Insieme delle funzioni del sistema</param>
         public cTable(string Z, string[] sFunzioni) {
             this.sFunzioni = sFunzioni;
+            this.sFunzioneZ = Z;
+            for (int i = 0; i < sFunzioneZ.Length; i++) {
+                string[] t = sFunzioneZ.Split('=');
+                string[] tmp = Regex.Split(t[0], "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
+                tmp = tmp.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
+                iBMax = tmp.Length;
+            }
 
             //sFunzioni[0] = 3x1-3x2-4x3
             //sVars[0] = {3x1, -3x2, -4x3}
@@ -32,7 +61,7 @@ namespace CalcProject {
 
                 //Selezione dei termini singoli della funzione
                 string[] tmp = Regex.Split(sFunzioni[i], "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
-                tmp = tmp.Where(x => !string.IsNullOrEmpty(x)).ToArray();
+                tmp = tmp.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
                 tmp[tmp.Length - 1] = tmp[tmp.Length - 1].Replace("=", "");
                 tmp[tmp.Length - 1] = tmp[tmp.Length - 1].Replace("<", "");
                 tmp[tmp.Length - 1] = tmp[tmp.Length - 1].Replace(">", "");
@@ -47,11 +76,13 @@ namespace CalcProject {
                 sNumbers.Add(tmp);
             }
 
+            #region #DEPRECATED
             //Prendo il massimo di variabili di base nel sistema
             //sVars[i].Length - 1 perché altrimenti conta la parte destra del sistema
-            for (int i = 0; i < sVars.Count; i++) { 
-                iBMax = Math.Max(sVars[i].Length - 1, iBMax); 
-            }
+            //for (int i = 0; i < sVars.Count; i++) { 
+            //    iBMax = Math.Max(sVars[i].Length - 1, iBMax); 
+            //} 
+            #endregion
 
             for (int i = 0; i < sFunzioni.Length; i++) {
                 string tmp = setScarto(sFunzioni[i]);
@@ -59,10 +90,13 @@ namespace CalcProject {
                 else sFunzioni[i] = tmp;
             }
 
-
             
         }
-
+        
+        /// <summary>
+        /// Imposta la funzione selezionata con lo scarto
+        /// </summary>
+        /// <param name="sFunzione">Funzione a cui aggiungere la variabile di scarto</param>
         private string setScarto(string sFunzione) {
             if (sFunzione.Contains("=") && !sFunzione.Contains("<=")) return sFunzione;
 
