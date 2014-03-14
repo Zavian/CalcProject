@@ -47,6 +47,7 @@ namespace CalcProject {
         public cTable(string Z, string[] sFunzioni) {
             this.sFunzioni = sFunzioni;
             this.sFunzioneZ = Z;
+            //Lettura della Z
             for (int i = 0; i < sFunzioneZ.Length; i++) {
                 string[] t = sFunzioneZ.Split('=');
                 string[] tmp = Regex.Split(t[0], "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
