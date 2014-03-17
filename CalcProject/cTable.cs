@@ -9,7 +9,18 @@ using System.Text.RegularExpressions;
 
 namespace CalcProject {
     class cTable {
-
+        
+        /// <summary>
+        /// Ricevi l'array degli elementi della Z
+        /// </summary>
+        public int[] ZArray { get { 
+                //Da togliere le X
+                string[] elemZ = Regex.Split(sFunzioneZ, "([-|\\+]{0,1}\\d{0,})");
+                elemZ = elemZ.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
+                return elemZ;
+            } 
+        }
+        
         /// <summary>
         /// Ricevi il numero delle variabili decisionali
         /// </summary>
@@ -31,7 +42,7 @@ namespace CalcProject {
         /// Ricevi l'array di stringhe delle funzioni
         /// </summary>
         public string[] Functions { get { return sFunzioni; } }
-
+        
         string sFunzioneZ;
         string[] sFunzioni;
         int iBMax = 0;
@@ -48,12 +59,10 @@ namespace CalcProject {
             this.sFunzioni = sFunzioni;
             this.sFunzioneZ = Z;
             //Lettura della Z
-            for (int i = 0; i < sFunzioneZ.Length; i++) {
-                string[] t = sFunzioneZ.Split('=');
-                string[] tmp = Regex.Split(t[0], "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
-                tmp = tmp.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
-                iBMax = tmp.Length;
-            }
+            string[] elemZ = Regex.Split(sFunzioneZ, "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
+            elemZ = elemZ.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
+            iBMax = elemZ.Length;
+            
 
             //sFunzioni[0] = 3x1-3x2-4x3
             //sVars[0] = {3x1, -3x2, -4x3}
