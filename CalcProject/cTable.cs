@@ -15,9 +15,14 @@ namespace CalcProject {
         /// </summary>
         public int[] ZArray { get { 
                 //Da togliere le X
-                string[] elemZ = Regex.Split(sFunzioneZ, "([-|\\+]{0,1}\\d{0,})");
+            string[] elemZ = Regex.Split(sFunzioneZ, "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
                 elemZ = elemZ.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
-                return elemZ;
+                for (int i = 0; i < elemZ.Length; i++) {
+                    elemZ[i] = elemZ[i].Remove(elemZ[i].LastIndexOf('x'));
+                }
+                int[] returner = new int[elemZ.Length];
+                for (int i = 0; i < elemZ.Length; i++) returner[i] = Convert.ToInt32(elemZ[i]);
+                return returner;
             } 
         }
         

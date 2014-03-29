@@ -37,6 +37,7 @@
             // rExpressions
             // 
             this.rExpressions.BackColor = System.Drawing.Color.White;
+            this.rExpressions.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.rExpressions.Location = new System.Drawing.Point(64, 58);
             this.rExpressions.Name = "rExpressions";
             this.rExpressions.Size = new System.Drawing.Size(422, 180);
@@ -56,7 +57,7 @@
             // 
             this.label2.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 120F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(-27, 37);
+            this.label2.Location = new System.Drawing.Point(-30, 43);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(90, 208);
             this.label2.TabIndex = 2;
@@ -79,7 +80,7 @@
             this.aiutoToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(545, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(539, 24);
             this.menuStrip1.TabIndex = 4;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -109,7 +110,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(545, 308);
+            this.ClientSize = new System.Drawing.Size(539, 321);
             this.Controls.Add(this.txtZ);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.label2);
