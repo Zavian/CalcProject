@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 namespace CalcProject {
     class cTable {
         
+        
         /// <summary>
         /// Ricevi l'array degli elementi della Z
         /// </summary>
@@ -48,12 +49,55 @@ namespace CalcProject {
         /// </summary>
         public string[] Functions { get { return sFunzioni; } }
         
+         string nomeEsercizio = "";
+         string problema = ""; //min|max
+        
         string sFunzioneZ;
         string[] sFunzioni;
+       
         int iBMax = 0;
         int iSMax = 0;
         List<String[]> sVars = new List<string[]>();
         List<String[]> sNumbers = new List<String[]>();
+        
+        
+        public cTable(string File) {
+            using(StreamReader s = new StreamReader(File)) {
+                //nome es
+                //max|min
+                //coefficienti Z divisi da ;
+                //vincoli coi coefficienti divisi ;
+                //ultima riga #
+                
+                //Esempio:
+                //Es Pippo
+                //Max
+                //3; 4; 6 x1 -> x3
+                //3; 4; >=; 450
+                //#
+                
+                string line = "";
+                counter = 0;
+                while((line = file.ReadLine()) != null)
+                {
+                   switch(counter) {
+                       default: throw new System.ArgumentException(
+                           "Seguire il tutorial (F1) per la generazione del file"
+                           );
+                           break;
+                           
+                       case 0: nomeEsercizio = line; break;
+                       case 1: 
+                            line = line.ToLowerCase();
+                            if(line == "min" || line == "minimo" || line == "max" || line == "massimo") {
+                                
+                            }
+                       
+                   }
+                   counter++;
+                }
+            }
+        }
 
         /// <summary>
         /// Inizializzazione oggetto
