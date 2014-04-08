@@ -10,11 +10,48 @@ using System.Text.RegularExpressions;
 
 namespace CalcProject {
     public partial class mainForm : Form {
+
+        public mainForm() {
+            InitializeComponent();
+            
+
+            button1.Enabled = false;
+
+            //Gestione contenuti e grafica della listbox
+            this.listBox1.DrawMode = DrawMode.OwnerDrawVariable;
+            this.listBox1.DataSource = Tables;
+            this.listBox1.DisplayMember = "exName";
+            this.listBox1.ValueMember = "exName";
+            this.listBox1.ItemHeight = 20;
+            this.listBox1.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.myListBox_DrawItem);
+
+            txtZ.Text = "3x1+3x2+4x3";
+            button1_Click(null, null);
+        }
+
+        private void myListBox_DrawItem(object sender, System.Windows.Forms.DrawItemEventArgs e) {
+            //Gestione della grafica della listbox
+            //Questo metodo permette di creare il rettangolo grigio attorno al nome dell'esercizio
+
+            e.DrawBackground();
+            Font myFont;
+            Brush myBrush = Brushes.Black;
+            int i = e.Index;
+            myFont = new Font("Palatino Linotype", 9, FontStyle.Bold);
+            if ((e.State & DrawItemState.Selected) == DrawItemState.Selected) {            
+                e.Graphics.FillRectangle(Brushes.White, e.Bounds.X, e.Bounds.Y, e.Bounds.Width, e.Bounds.Height);
+                myBrush = new SolidBrush(Color.FromArgb(255, 71, 71, 71));
+            }
+            myFont = new Font("Arial", 12, FontStyle.Bold);
+            Rectangle myRect = e.Bounds;
+            e.Graphics.DrawString(Tables[i].exName, myFont, myBrush, myRect, StringFormat.GenericTypographic);
+        }
+
         cTable table;
+        BindingList<cTable> Tables = new BindingList<cTable>();
 
 
         private DataGridView getDG() { return this.Controls["dg"] as DataGridView; }
-
         private double[] getColumn(DataGridView dg, int columIndex) {
             double[] ris;
             int add = columIndex == 0 ? 0 : 1;
@@ -26,7 +63,6 @@ namespace CalcProject {
 
             return ris;
         }
-
         private string enteringVar(DataGridView dg) {
             int dc = table.nVariabili;
             double[] myArray = new double[table.nVariabiliScarto];
@@ -55,37 +91,20 @@ namespace CalcProject {
             MessageBox.Show("La variabile entrante è: x" + maxIndex.ToString());
             return "x" + maxIndex.ToString();
         }
-
-        public mainForm() {
-            InitializeComponent();
-            button1.Enabled = false;
-
-            txtZ.Text = "3x1+3x2+4x3";
-            button1_Click(null, null);
-        }
-
-
         private int isBaseVar(string s, DataGridView dg) {
             for (int r = 0; r < dg.RowCount - 2; r++) {
                 string tmp = dg[1, r].Value.ToString();
                 if (tmp == s) return r;
             }
             return -1;
-        }
-       
+        }       
         private int getColumnByHeader(string s, DataGridView dg) {
             for (int i = 0; i < dg.Columns.Count; i++) {
                 if (dg.Columns[i].HeaderText == s) return i;
             }
             return -1;
-        }
-
-        private string getHeaderByColumn(int s, DataGridView dg) {
-            return dg.Columns[s].HeaderText;
-        }
-
-        //Questo metodo serve per gestire il fatto che non si metta un numero davanti alla X
-        private string validNumbers(string t) {
+        }     
+        private string validNumbers(string t) /*Questo metodo serve per gestire il fatto che non si metta un numero davanti alla X */ {
             string[] tmp = Regex.Split(t, "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
             tmp = tmp.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
             for (int i = 0; i < tmp.Length; i++) {
@@ -105,8 +124,14 @@ namespace CalcProject {
             string[] s = new string[] { "3x1-3x2-4x3<=360", "2x1+3x2-4x3<=100"};
             string tmp = validNumbers(txtZ.Text);
 
-            table = new cTable(tmp, s);
-            rExpressions.Visible = label1.Visible = label2.Visible =  button1.Visible = txtZ.Visible = false;
+            table = new cTable("Patata", tmp, s);
+            Tables.Add(table);
+            Tables.Add(table);
+            Tables.Add(table);
+            Tables.Add(table);
+            Tables.Add(table);
+
+            rExpressions.Visible = label1.Visible =  button1.Visible = txtZ.Visible = false;
 
 
             DataGridView dg = createDataGrid(table); 
@@ -154,7 +179,6 @@ namespace CalcProject {
 
             rExpressions.Dispose();
             label1.Dispose();
-            label2.Dispose();
             txtZ.Dispose();
             button1.Dispose();
 
@@ -164,22 +188,10 @@ namespace CalcProject {
         void bPrev_Click(object sender, EventArgs e) {
             throw new NotImplementedException();
         }
-
         void bNext_Click(object sender, EventArgs e) {
             DataGridView dg = getDG();
             enteringVar(dg);
         }
-
-        private static void writeHeaders(cTable table, DataGridView dg) {
-            for (int i = 0; i < table.Functions.Length; i++) {
-                dg[0, i].Value = 0;
-                dg[1, i].Value = "x" + (table.nVariabili + (1 + i));
-            }
-            dg[1, table.Functions.Length].Value = "Cj"; //GTA San Andreas cit.
-            dg[1, table.Functions.Length + 1].Value = "SAB";
-        }
-
-        
 
         private DataGridView createDataGrid(cTable table) {
             DataGridView dg = new DataGridView();
@@ -207,7 +219,14 @@ namespace CalcProject {
             dg.Columns[table.nVariabiliScarto + 2].HeaderText = "b";
             return dg;
         }
-
+        private static void writeHeaders(cTable table, DataGridView dg) {
+            for (int i = 0; i < table.Functions.Length; i++) {
+                dg[0, i].Value = 0;
+                dg[1, i].Value = "x" + (table.nVariabili + (1 + i));
+            }
+            dg[1, table.Functions.Length].Value = "Cj"; //GTA San Andreas cit.
+            dg[1, table.Functions.Length + 1].Value = "SAB";
+        }
         private static void writeTableNumbers(cTable t, DataGridView dg) {
             for (int r = 0; r < t.Functions.Length /*Da aggiungere il +1 per Cj */; r++) {
                 //t.nVars per far si che riempisse tutte le caselle delle var decisionali
@@ -235,7 +254,6 @@ namespace CalcProject {
                 dg[dg.Columns.Count - 1, r].Value = t.Vars[r][3];
             }
         }
-
         private void writeCb(cTable t, DataGridView dg) {
             for (int r = 0; r < t.Functions.Length; r++) {
                 string str = dg[1, r].Value.ToString();
@@ -244,7 +262,6 @@ namespace CalcProject {
                 dg[0, r].Value = dg[column, row].Value;
             }
         }
-
         private void writeSab(DataGridView dg) {
             int sabIndex = dg.RowCount - 1;
             for (int c = 2; c < dg.ColumnCount - 1; c++) {
@@ -262,7 +279,6 @@ namespace CalcProject {
         private void txtZ_Enter(object sender, EventArgs e) {
             txtZ.Text = "";
         }
-
         private void txtZ_Leave(object sender, EventArgs e) {
             if (txtZ.Text.Trim() == "") { txtZ.Text = "Inserire la funzione Z"; return; }
             button1.Enabled = true;

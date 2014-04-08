@@ -10,8 +10,10 @@ using System.IO;
 
 namespace CalcProject {
     class cTable {
-        
-        
+
+        public string exName { get { return nomeEsercizio; } }
+
+
         /// <summary>
         /// Ricevi l'array degli elementi della Z
         /// </summary>
@@ -105,7 +107,9 @@ namespace CalcProject {
         /// </summary>
         /// <param name="Z">Stringa Z</param>
         /// <param name="sFunzioni">Insieme delle funzioni del sistema</param>
-        public cTable(string Z, string[] sFunzioni) {
+        /// <param name="exName">Nome dell'esercizio verrà visualizzato</param>
+        public cTable(string exName, string Z, string[] sFunzioni) {
+            this.nomeEsercizio = exName;
             this.sFunzioni = sFunzioni;
             this.sFunzioneZ = Z;
             //Lettura della Z
