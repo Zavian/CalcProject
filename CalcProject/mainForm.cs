@@ -10,6 +10,25 @@ using System.Text.RegularExpressions;
 
 namespace CalcProject {
     public partial class mainForm : Form {
+        List<cTable> Tables = new List<cTable>();
+
+        public mainForm() {
+            InitializeComponent();
+
+            //Gestione grafica e dati della lista esercizi
+            listBox1.DrawMode = DrawMode.OwnerDrawVariable;
+            //listBox1.DataSource = Tables;
+            //listBox1.DisplayMember = "exName";
+            button1.Enabled = false;
+
+
+            
+
+            txtZ.Text = "3x1+3x2+4x3";
+            button1_Click(null, null);
+        }
+
+
         cTable table;
 
 
@@ -56,14 +75,7 @@ namespace CalcProject {
             return "x" + maxIndex.ToString();
         }
 
-        public mainForm() {
-            InitializeComponent();
-            button1.Enabled = false;
-
-            txtZ.Text = "3x1+3x2+4x3";
-            button1_Click(null, null);
-        }
-
+        
 
         private int isBaseVar(string s, DataGridView dg) {
             for (int r = 0; r < dg.RowCount - 2; r++) {
@@ -105,8 +117,9 @@ namespace CalcProject {
             string[] s = new string[] { "3x1-3x2-4x3<=360", "2x1+3x2-4x3<=100"};
             string tmp = validNumbers(txtZ.Text);
 
-            table = new cTable(tmp, s);
-            rExpressions.Visible = label1.Visible = label2.Visible =  button1.Visible = txtZ.Visible = false;
+            table = new cTable("Patata", tmp, s);
+            Tables.Add(table);
+            rExpressions.Visible = label1.Visible = button1.Visible = txtZ.Visible = false;
 
 
             DataGridView dg = createDataGrid(table); 
@@ -154,7 +167,6 @@ namespace CalcProject {
 
             rExpressions.Dispose();
             label1.Dispose();
-            label2.Dispose();
             txtZ.Dispose();
             button1.Dispose();
 

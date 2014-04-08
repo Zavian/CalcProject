@@ -10,8 +10,10 @@ using System.IO;
 
 namespace CalcProject {
     class cTable {
-        
-        
+
+
+        public string exName { get { return nomeEsercizio; } }
+
         /// <summary>
         /// Ricevi l'array degli elementi della Z
         /// </summary>
@@ -105,9 +107,11 @@ namespace CalcProject {
         /// </summary>
         /// <param name="Z">Stringa Z</param>
         /// <param name="sFunzioni">Insieme delle funzioni del sistema</param>
-        public cTable(string Z, string[] sFunzioni) {
+        /// <param name="exName">Nome dell'esercizio</param>
+        public cTable(string exName, string Z, string[] sFunzioni) {
             this.sFunzioni = sFunzioni;
             this.sFunzioneZ = Z;
+            this.nomeEsercizio = exName;
             //Lettura della Z
             string[] elemZ = Regex.Split(sFunzioneZ, "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
             elemZ = elemZ.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
