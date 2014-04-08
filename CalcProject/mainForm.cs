@@ -10,6 +10,52 @@ using System.Text.RegularExpressions;
 
 namespace CalcProject {
     public partial class mainForm : Form {
+        cTable table;
+
+
+        private DataGridView getDG() { return this.Controls["dg"] as DataGridView; }
+
+        private double[] getColumn(DataGridView dg, int columIndex) {
+            double[] ris;
+            int add = columIndex == 0 ? 0 : 1;
+            ris = new double[table.Functions.Count() + add];
+            if (add == 1) ris[0] = Convert.ToDouble(dg[columIndex, table.Functions.Count()].Value);
+            for (int i = 0; i < table.Functions.Count(); i++) {
+                ris[i + add] = Convert.ToDouble(dg[columIndex, i].Value);
+            }
+
+            return ris;
+        }
+
+        private string enteringVar(DataGridView dg) {
+            int dc = table.nVariabili;
+            double[] myArray = new double[table.nVariabiliScarto];
+            for (int i = 0; i < myArray.Length; i++) { myArray[i] = double.MinValue; }
+            for (int i = 2; i < dg.Columns.Count - 1; i++) {
+                string header = dg.Columns[i].HeaderText;
+                if (isBaseVar(header, dg) == -1) { //Se non è una variabile di base
+                    double ris = 0;
+                    double[] column = getColumn(dg, i), cb = getColumn(dg, 0);
+
+                    ris = column[0]; //cj
+                    double parteDestra = 0;
+                    for (int k = 1; k < column.Length; k++) {
+                        parteDestra += column[k] * cb[k - 1];
+                    }
+
+                    ris -= parteDestra;
+                    myArray[i - 2] = ris;
+                }
+                
+            }
+
+            double maxValue = myArray.Max();
+            int maxIndex = myArray.ToList().IndexOf(maxValue);
+            maxIndex += 1;
+            MessageBox.Show("La variabile entrante è: x" + maxIndex.ToString());
+            return "x" + maxIndex.ToString();
+        }
+
         public mainForm() {
             InitializeComponent();
             button1.Enabled = false;
@@ -21,7 +67,8 @@ namespace CalcProject {
 
         private int isBaseVar(string s, DataGridView dg) {
             for (int r = 0; r < dg.RowCount - 2; r++) {
-                if (dg[1, r].Value == s) return r;
+                string tmp = dg[1, r].Value.ToString();
+                if (tmp == s) return r;
             }
             return -1;
         }
@@ -55,94 +102,22 @@ namespace CalcProject {
 
         private void button1_Click(object sender, EventArgs e) {
 
-            string[] s = new string[] { "3x1-3x2-4x3<=360", "2x1+3x2-4x3<=100", 
-            "3x1-3x2-4x3<=360", "2x1+3x2-4x3<=100"};
+            string[] s = new string[] { "3x1-3x2-4x3<=360", "2x1+3x2-4x3<=100"};
             string tmp = validNumbers(txtZ.Text);
 
-            cTable t = new cTable(tmp, s);
+            table = new cTable(tmp, s);
             rExpressions.Visible = label1.Visible = label2.Visible =  button1.Visible = txtZ.Visible = false;
 
 
-            #region Creazione oggetto
-            DataGridView dg = new DataGridView();
-            dg.Name = "dg";
-            //CB, Base, Var decisionali + Var scarto, B
-            dg.ColumnCount = 3 + t.nVariabiliScarto;
-            dg.RowCount = t.Functions.Length + 2;
-            //i = 2; le prime due non le conta, Columns.Count - 1; l'ultima non la conta
-            for (int i = 2; i < dg.Columns.Count; i++) {
-                for (int j = 0; j < dg.Rows.Count; j++) {
-                    dg.Rows[j].Cells[i].Value = "0";
-                }
-            }
-            for (int i = 0; i < dg.Columns.Count; i++) { dg.Columns[i].Width = 50; }
-            dg.Location = new Point(rExpressions.Location.X - 5, rExpressions.Location.Y);
-            dg.Size = new Size(rExpressions.Size.Width, rExpressions.Size.Height);
-            dg.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left;
-            dg.Columns[0].HeaderText = "Cb";
-            dg.Columns[1].HeaderText = /* All your */"Base" /* are belong to us */;
-            this.Controls.Add(dg);
-            
-            for (int i = 0; i < t.nVariabiliScarto; i++) {
-                dg.Columns[i + 2].HeaderText = "x" + (i + 1);
-            }
-            dg.Columns[t.nVariabiliScarto + 2].HeaderText = "b"; 
-            #endregion
+            DataGridView dg = createDataGrid(table); 
+            writeHeaders(table, dg);
+            writeTableNumbers(table, dg);
+            writeB(table, dg);
+            writeCb(table, dg);
+            writeSab(dg);
 
-            #region Scrittura headers
-            //Riempimento prime due colonne
-            for (int i = 0; i < t.Functions.Length; i++) {
-                dg[0, i].Value = 0;
-                dg[1, i].Value = "x" + (t.nVariabili + (1 + i));
-            }
-            dg[1, t.Functions.Length].Value = "Cj"; //GTA San Andreas cit.
-            dg[1, t.Functions.Length + 1].Value = "SAB"; 
-            #endregion
 
-            #region Popolamento tabella
-            for (int r = 0; r < t.Functions.Length /*Da aggiungere il +1 per Cj */; r++) {
-                //t.nVars per far si che riempisse tutte le caselle delle var decisionali
-                //+1 per riempire quella dello scarto
-                for (int c = 0; c < t.nVariabili + 1; c++) {
-                    if (c < t.nVariabili) {
-                        dg[c + 2, r].Value = t.coefficientTerms[r][c];
 
-                        //Scrittura Cj
-                        dg[c + 2, t.nVariabiliScarto - t.nVariabili].Value = t.ZArray[c];
-                    }
-                    else { //Ho scritto tutti i coefficienti
-                        dg[c + 2 + r, r].Value = 1;
-                        //c + 2 per il fatto delle prime due da non contare
-                        //+ r per contare a che funzione sono arrivato
-                        //quindi per arrivare all'nesimo scarto
-
-                    }
-                }
-            }
-
-            //Scrittura dei termini di destra
-            for (int r = 0; r < t.Vars.Count; r++) {
-                dg[dg.Columns.Count - 1, r].Value = t.Vars[r][3];
-            }
-
-            //Scrittura della cb
-            for (int r = 0; r < t.Functions.Length; r++) {
-                string str = dg[1, r].Value.ToString();
-                int column = getColumnByHeader(str, dg);
-                int row = t.Functions.Length + 1;
-                dg[0, r].Value = dg[column, row].Value;
-            }
-
-            int sabIndex = dg.RowCount - 1;
-            for (int c = 2; c < dg.ColumnCount-1; c++) {
-                string header = dg.Columns[c].HeaderText;
-                int BaseIndex = isBaseVar(header, dg);
-                if (BaseIndex > -1) {
-                    dg[c, sabIndex].Value = dg[dg.ColumnCount, BaseIndex].Value;
-                }
-            }
-
-            #endregion
 
             Button bNext, bPrev;
             bNext = new Button();
@@ -150,6 +125,7 @@ namespace CalcProject {
             bNext.Text = ">";
             bNext.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) + 5, dg.Location.Y + dg.Height + 5);
             this.Controls.Add(bNext);
+            bNext.Click += bNext_Click;
 
             bPrev = new Button();
             bPrev.Name = "bPrev";
@@ -157,6 +133,7 @@ namespace CalcProject {
             bPrev.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) - bNext.Width, dg.Location.Y + dg.Height + 5);
             bPrev.Enabled = false;
             this.Controls.Add(bPrev);
+            bPrev.Click += bPrev_Click;
 
 
             #region #DEPRECATED
@@ -182,6 +159,102 @@ namespace CalcProject {
             button1.Dispose();
 
             
+        }
+
+        void bPrev_Click(object sender, EventArgs e) {
+            throw new NotImplementedException();
+        }
+
+        void bNext_Click(object sender, EventArgs e) {
+            DataGridView dg = getDG();
+            enteringVar(dg);
+        }
+
+        private static void writeHeaders(cTable table, DataGridView dg) {
+            for (int i = 0; i < table.Functions.Length; i++) {
+                dg[0, i].Value = 0;
+                dg[1, i].Value = "x" + (table.nVariabili + (1 + i));
+            }
+            dg[1, table.Functions.Length].Value = "Cj"; //GTA San Andreas cit.
+            dg[1, table.Functions.Length + 1].Value = "SAB";
+        }
+
+        
+
+        private DataGridView createDataGrid(cTable table) {
+            DataGridView dg = new DataGridView();
+            dg.Name = "dg";
+            //CB, Base, Var decisionali + Var scarto, B
+            dg.ColumnCount = 3 + table.nVariabiliScarto;
+            dg.RowCount = table.Functions.Length + 2;
+            //i = 2; le prime due non le conta, Columns.Count - 1; l'ultima non la conta
+            for (int i = 2; i < dg.Columns.Count; i++) {
+                for (int j = 0; j < dg.Rows.Count; j++) {
+                    dg.Rows[j].Cells[i].Value = "0";
+                }
+            }
+            for (int i = 0; i < dg.Columns.Count; i++) { dg.Columns[i].Width = 50; }
+            dg.Location = new Point(rExpressions.Location.X - 5, rExpressions.Location.Y);
+            dg.Size = new Size(rExpressions.Size.Width, rExpressions.Size.Height);
+            dg.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left;
+            dg.Columns[0].HeaderText = "Cb";
+            dg.Columns[1].HeaderText = /* All your */"Base" /* are belong to us */;
+            this.Controls.Add(dg);
+
+            for (int i = 0; i < table.nVariabiliScarto; i++) {
+                dg.Columns[i + 2].HeaderText = "x" + (i + 1);
+            }
+            dg.Columns[table.nVariabiliScarto + 2].HeaderText = "b";
+            return dg;
+        }
+
+        private static void writeTableNumbers(cTable t, DataGridView dg) {
+            for (int r = 0; r < t.Functions.Length /*Da aggiungere il +1 per Cj */; r++) {
+                //t.nVars per far si che riempisse tutte le caselle delle var decisionali
+                //+1 per riempire quella dello scarto
+                for (int c = 0; c < t.nVariabili + 1; c++) {
+                    if (c < t.nVariabili) {
+                        dg[c + 2, r].Value = t.coefficientTerms[r][c];
+
+                        //Scrittura Cj
+                        dg[c + 2, t.nVariabiliScarto - t.nVariabili].Value = t.ZArray[c];
+                    }
+                    else { //Ho scritto tutti i coefficienti
+                        dg[c + 2 + r, r].Value = 1;
+                        //c + 2 per il fatto delle prime due da non contare
+                        //+ r per contare a che funzione sono arrivato
+                        //quindi per arrivare all'nesimo scarto
+
+                    }
+                }
+            }
+        }
+
+        private static void writeB(cTable t, DataGridView dg) {
+            for (int r = 0; r < t.Vars.Count; r++) {
+                dg[dg.Columns.Count - 1, r].Value = t.Vars[r][3];
+            }
+        }
+
+        private void writeCb(cTable t, DataGridView dg) {
+            for (int r = 0; r < t.Functions.Length; r++) {
+                string str = dg[1, r].Value.ToString();
+                int column = getColumnByHeader(str, dg);
+                int row = t.Functions.Length + 1;
+                dg[0, r].Value = dg[column, row].Value;
+            }
+        }
+
+        private void writeSab(DataGridView dg) {
+            int sabIndex = dg.RowCount - 1;
+            for (int c = 2; c < dg.ColumnCount - 1; c++) {
+                string header = dg.Columns[c].HeaderText;
+                int BaseIndex = isBaseVar(header, dg);
+                if (BaseIndex > -1) {
+
+                    dg[c, sabIndex].Value = dg[dg.ColumnCount - 1, BaseIndex].Value;
+                }
+            }
         }
 
         

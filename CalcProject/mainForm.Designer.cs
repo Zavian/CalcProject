@@ -31,6 +31,7 @@
             this.nuovoSistemaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aiutoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.txtZ = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -57,7 +58,7 @@
             // 
             this.label2.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 120F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(-30, 43);
+            this.label2.Location = new System.Drawing.Point(-31, 30);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(90, 208);
             this.label2.TabIndex = 2;
@@ -80,7 +81,7 @@
             this.aiutoToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(539, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(548, 24);
             this.menuStrip1.TabIndex = 4;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -106,11 +107,21 @@
             this.txtZ.Enter += new System.EventHandler(this.txtZ_Enter);
             this.txtZ.Leave += new System.EventHandler(this.txtZ_Leave);
             // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(439, 421);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(97, 39);
+            this.label3.TabIndex = 6;
+            this.label3.Text = "Z: 3x1+3x2+4x3\r\n3x1-3x2-4x3<=360\r\n2x1+3x2-4x3<=100";
+            // 
             // mainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(539, 321);
+            this.ClientSize = new System.Drawing.Size(548, 469);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.txtZ);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.label2);
@@ -137,6 +148,7 @@
         private System.Windows.Forms.ToolStripMenuItem nuovoSistemaToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aiutoToolStripMenuItem;
         private System.Windows.Forms.TextBox txtZ;
+        private System.Windows.Forms.Label label3;
     }
 }
 

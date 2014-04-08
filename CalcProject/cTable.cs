@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.IO;
 
 //A questa classe vengono passate solo stringhe già controllate
 //e funzionanti
@@ -61,43 +62,43 @@ namespace CalcProject {
         List<String[]> sNumbers = new List<String[]>();
         
         
-        public cTable(string File) {
-            using(StreamReader s = new StreamReader(File)) {
-                //nome es
-                //max|min
-                //coefficienti Z divisi da ;
-                //vincoli coi coefficienti divisi ;
-                //ultima riga #
+        //public cTable(string file) {
+        //    using(StreamReader s = new StreamReader(File)) {
+        //        //nome es
+        //        //max|min
+        //        //coefficienti Z divisi da ;
+        //        //vincoli coi coefficienti divisi ;
+        //        //ultima riga #
                 
-                //Esempio:
-                //Es Pippo
-                //Max
-                //3; 4; 6 x1 -> x3
-                //3; 4; >=; 450
-                //#
+        //        //Esempio:
+        //        //Es Pippo
+        //        //Max
+        //        //3; 4; 6 x1 -> x3
+        //        //3; 4; >=; 450
+        //        //#
                 
-                string line = "";
-                counter = 0;
-                while((line = file.ReadLine()) != null)
-                {
-                   switch(counter) {
-                       default: throw new System.ArgumentException(
-                           "Seguire il tutorial (F1) per la generazione del file"
-                           );
-                           break;
+        //        string line = "";
+        //        int counter = 0;
+        //        while((line = file.ReadLine()) != null)
+        //        {
+        //           switch(counter) {
+        //               default: throw new System.ArgumentException(
+        //                   "Seguire il tutorial (F1) per la generazione del file"
+        //                   );
+        //                   break;
                            
-                       case 0: nomeEsercizio = line; break;
-                       case 1: 
-                            line = line.ToLowerCase();
-                            if(line == "min" || line == "minimo" || line == "max" || line == "massimo") {
+        //               case 0: nomeEsercizio = line; break;
+        //               case 1: 
+        //                    line = line.ToLowerCase();
+        //                    if(line == "min" || line == "minimo" || line == "max" || line == "massimo") {
                                 
-                            }
+        //                    }
                        
-                   }
-                   counter++;
-                }
-            }
-        }
+        //           }
+        //           counter++;
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Inizializzazione oggetto

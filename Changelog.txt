@@ -4,3 +4,5 @@ Inizio abbozzo interfaccia della mainForm.
 Completata scrittura delle variabili di scarto, da scrivere la Z
 14/03/2014 - Riordinato il codice, aggiunta la lettura della FunzioneZ. 
 Minima ottimizzazione del codice
+08/04/2014 - Metodizzazione della creazione della tabella.
+Calcolo della variabile entrante
