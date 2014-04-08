@@ -37,7 +37,6 @@ namespace CalcProject {
             Font myFont;
             Brush myBrush = Brushes.Black;
             int i = e.Index;
-            myFont = new Font("Palatino Linotype", 9, FontStyle.Bold);
             if ((e.State & DrawItemState.Selected) == DrawItemState.Selected) {            
                 e.Graphics.FillRectangle(Brushes.White, e.Bounds.X, e.Bounds.Y, e.Bounds.Width, e.Bounds.Height);
                 myBrush = new SolidBrush(Color.FromArgb(255, 71, 71, 71));
