@@ -125,10 +125,6 @@ namespace CalcProject {
 
             table = new cTable("Patata", tmp, s);
             Tables.Add(table);
-            Tables.Add(table);
-            Tables.Add(table);
-            Tables.Add(table);
-            Tables.Add(table);
 
             rExpressions.Visible = label1.Visible =  button1.Visible = txtZ.Visible = false;
 
