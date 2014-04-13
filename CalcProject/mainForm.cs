@@ -32,7 +32,7 @@ namespace CalcProject {
 
             //Debug stuff
             txtZ.Text = "3x1+3x2+4x3";
-            //button1_Click(null, null);
+            //button1_Click(null, null); //<--- ROBA DA DEBUG IMPORTANTE
             //---------------
         }
 
@@ -308,10 +308,169 @@ namespace CalcProject {
             background.BackColor = Color.FromArgb(0, 192, 192, 192);
             this.Controls.Add(background);
 
-            background.BringToFront();
-            insertingWindow.BringToFront();
 
             
+
+            List<Object> insertingWindowObjects = new List<object>();
+
+            #region exerciseName
+            TextBox exerciseName = new TextBox();
+            exerciseName.Size = new Size(200, 20);
+            exerciseName.MaxLength = 30;
+            exerciseName.Text = "Inserire il nome dell'esercizio";
+            exerciseName.Name = "exerciseName";
+            exerciseName.Location = new Point(insertingWindow.Size.Width / 10, 15);
+            exerciseName.Enter += dataTXTEnter;
+            exerciseName.Leave += dataTXTLeave;
+
+            insertingWindowObjects.Add(exerciseName);
+            #endregion      
+            #region cbMinMax
+            ComboBox cbMinMax = new ComboBox();
+            cbMinMax.Size = new Size(125, 20);
+            cbMinMax.Name = "cbMinMax";
+            string[] tmp = { "Problema di Massimo", "Problema di Minimo" };
+            cbMinMax.Items.AddRange(tmp);
+            cbMinMax.Location = new Point(
+                exerciseName.Location.X + exerciseName.Width + 5,
+                15
+                );
+            cbMinMax.SelectedIndex = 0;
+
+            insertingWindowObjects.Add(cbMinMax);
+            #endregion
+
+            #region exerciseZ
+            TextBox exerciseZ = new TextBox();
+            exerciseZ.Size = new Size(375, 20);
+            exerciseZ.Text = "Inserire la Z del problema";
+            exerciseZ.Name = "exerciseZ";
+            exerciseZ.Location = new Point(
+                insertingWindow.Size.Width / 10,
+                exerciseName.Location.Y + 30
+                );
+            exerciseZ.Enter += dataTXTEnter;
+            exerciseZ.Leave += dataTXTLeave;
+
+            insertingWindowObjects.Add(exerciseZ);
+            #endregion            
+            #region exerciseFunctions
+            TextBox exerciseFunctions = new TextBox();
+            exerciseFunctions.Multiline = true;
+            exerciseFunctions.Size = new Size(375, 100);
+            exerciseFunctions.Text = "Inserire le funzioni del problema (una per riga)";
+            exerciseFunctions.Name = "exerciseFunctions";
+            exerciseFunctions.Location = new Point(
+                insertingWindow.Size.Width / 10,
+                exerciseZ.Location.Y + 30
+                );
+            exerciseFunctions.Enter += dataTXTEnter;
+            exerciseFunctions.Leave += dataTXTLeave;
+
+            insertingWindowObjects.Add(exerciseFunctions);
+            #endregion
+
+            #region bClear
+            Button bClear = new Button();
+            bClear.Size = new Size(125, 23);
+            bClear.Name = "bClear";
+            bClear.Location = new Point(
+                insertingWindow.Size.Width / 10, 
+                exerciseFunctions.Location.Y + exerciseFunctions.Height + 15
+                );
+            bClear.Text = "Ripulisci";
+            bClear.Click += bClear_Click;
+
+            insertingWindowObjects.Add(bClear);
+            #endregion
+            #region bAnalize
+            Button bAnalize = new Button();
+            bAnalize.Size = new Size(235, 23);
+            bAnalize.Name = "bAnalize";
+            bAnalize.Location = new Point(
+                insertingWindow.Size.Width / 10 + bClear.Width + 5, 
+                exerciseFunctions.Location.Y + exerciseFunctions.Height + 15
+                );
+            bAnalize.Text = "Analizza";
+            bAnalize.Click += bAnalize_Click;
+
+            insertingWindowObjects.Add(bAnalize);
+            #endregion
+
+
+            foreach (var item in insertingWindowObjects) insertingWindow.Controls.Add(item as Control);
+            this.ActiveControl = insertingWindow;
+
+            background.BringToFront();
+            insertingWindow.BringToFront();            
+        }
+
+        void bAnalize_Click(object sender, EventArgs e) {
+            //Debug staff
+            string[] s = new string[] { "3x1-3x2-4x3<=360", "2x1+3x2-4x3<=100" };
+            string tmp = validNumbers(txtZ.Text); //<--- ricorda questo 
+
+            table = new cTable("Patata", tmp, s);
+            Tables.Add(table);
+            //--------------
+
+            rExpressions.Visible = label1.Visible = button1.Visible = txtZ.Visible = false;
+
+
+            DataGridView dg = createDataGrid(table);
+            writeHeaders(table, dg);
+            writeTableNumbers(table, dg);
+            writeB(table, dg);
+            writeCb(table, dg);
+            writeSab(dg);
+
+
+
+
+            Button bNext, bPrev;
+            bNext = new Button();
+            bNext.Name = "bNext";
+            bNext.Text = ">";
+            bNext.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) + 5, dg.Location.Y + dg.Height + 5);
+            this.Controls.Add(bNext);
+            bNext.Click += bNext_Click;
+
+            bPrev = new Button();
+            bPrev.Name = "bPrev";
+            bPrev.Text = "<";
+            bPrev.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) - bNext.Width, dg.Location.Y + dg.Height + 5);
+            bPrev.Enabled = false;
+            this.Controls.Add(bPrev);
+            bPrev.Click += bPrev_Click;
+
+            this.Controls["insertingWindow"].Dispose();
+            this.Controls["background"].Dispose();
+            this.ActiveControl = dg;
+
+        }
+
+        void bClear_Click(object sender, EventArgs e) {
+            foreach (var item in this.Controls["insertingWindow"].Controls) {
+                if (item is TextBox) {
+                    (item as TextBox).Text = "";
+                    dataTXTLeave(item as TextBox, null); //<-- Che genio che sono
+                }
+            }
+        }
+
+        void dataTXTLeave(object sender, EventArgs e) {
+            TextBox t = sender as TextBox;
+            if (t.Text.Trim() == "") {
+                switch (t.Name) {
+                    case "exerciseName": t.Text = "Inserire il nome dell'esercizio"; break;
+                    case "exerciseZ": t.Text = "Inserire la Z del problema"; break;
+                    case "exerciseFunctions": t.Text = "Inserire le funzioni del problema (una per riga)"; break;
+                }
+            }
+        }
+        void dataTXTEnter(object sender, EventArgs e) {
+            TextBox t = sender as TextBox;
+            if (t.Text.Contains("Inserire")) t.Clear();
         }
     }
 }

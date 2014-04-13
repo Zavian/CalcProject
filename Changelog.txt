@@ -6,4 +6,5 @@ Completata scrittura delle variabili di scarto, da scrivere la Z
 Minima ottimizzazione del codice
 08/04/2014 - Metodizzazione della creazione della tabella.
 Calcolo della variabile entrante
-13/04/2014 - Aggiunte le basi sull’inserimento MAC style. Fiquo
+13/04/2014 - Aggiunte le basi sull’inserimento MAC style. Fiquo.
+Da sostituire completamente tutta l’interfaccia iniziale
