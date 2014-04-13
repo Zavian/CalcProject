@@ -11,11 +11,14 @@ using System.IO;
 namespace CalcProject {
     class cTable {
 
+        /// <summary>
+        /// Ricevi il nome dell'esercizio.
+        /// </summary>
         public string exName { get { return nomeEsercizio; } }
 
 
         /// <summary>
-        /// Ricevi l'array degli elementi della Z
+        /// Ricevi l'array degli elementi della Z.
         /// </summary>
         public int[] ZArray { get { 
                 //Da togliere le X
@@ -31,24 +34,24 @@ namespace CalcProject {
         }
         
         /// <summary>
-        /// Ricevi il numero delle variabili decisionali
+        /// Ricevi il numero delle variabili decisionali.
         /// </summary>
         public int nVariabili { get { return iBMax; } }
         /// <summary>
-        /// Ricevi il numero delle variabili totali
+        /// Ricevi il numero delle variabili totali.
         /// </summary>
         public int nVariabiliScarto { get { return iSMax; } }
         
         /// <summary>
-        /// Ricevi la lista dei coefficienti
+        /// Ricevi la lista dei coefficienti.
         /// </summary>
         public List<String[]> coefficientTerms { get { return sNumbers; } }
         /// <summary>
-        /// Ricevi la lista delle variabili decisionali
+        /// Ricevi la lista delle variabili decisionali.
         /// </summary>
         public List<String[]> Vars { get { return sVars; } }
         /// <summary>
-        /// Ricevi l'array di stringhe delle funzioni
+        /// Ricevi l'array di stringhe delle funzioni.
         /// </summary>
         public string[] Functions { get { return sFunzioni; } }
         
@@ -158,9 +161,9 @@ namespace CalcProject {
         }
         
         /// <summary>
-        /// Imposta la funzione selezionata con lo scarto
+        /// Imposta la funzione selezionata con lo scarto.
         /// </summary>
-        /// <param name="sFunzione">Funzione a cui aggiungere la variabile di scarto</param>
+        /// <param name="sFunzione">Funzione a cui aggiungere la variabile di scarto.</param>
         private string setScarto(string sFunzione) {
             if (sFunzione.Contains("=") && !sFunzione.Contains("<=")) return sFunzione;
 

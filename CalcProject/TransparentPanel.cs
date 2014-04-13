@@ -20,9 +20,9 @@ namespace CalcProject {
         /// <summary>
         /// Crea un pannello che permette la trasparenza.
         /// </summary>
-        /// <param name="Width">Larghezza del pannello</param>
-        /// <param name="Height">Altezza del pannello</param>
-        /// <param name="RGBColor">Colore RGB da applicare al pannello</param>
+        /// <param name="Width">Larghezza del pannello.</param>
+        /// <param name="Height">Altezza del pannello.</param>
+        /// <param name="RGBColor">Colore RGB da applicare al pannello.</param>
         public TransPanel(int Width, int Height, Color RGBColor) {
             c = RGBColor;
             pWidth = Width;
