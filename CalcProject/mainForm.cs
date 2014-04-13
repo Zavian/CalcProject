@@ -11,8 +11,12 @@ using System.Text.RegularExpressions;
 namespace CalcProject {
     public partial class mainForm : Form {
 
+
+
         public mainForm() {
             InitializeComponent();
+
+
             
 
             button1.Enabled = false;
@@ -25,8 +29,11 @@ namespace CalcProject {
             this.listBox1.ItemHeight = 20;
             this.listBox1.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.myListBox_DrawItem);
 
+
+            //Debug stuff
             txtZ.Text = "3x1+3x2+4x3";
-            button1_Click(null, null);
+            //button1_Click(null, null);
+            //---------------
         }
 
         private void myListBox_DrawItem(object sender, System.Windows.Forms.DrawItemEventArgs e) {
@@ -120,11 +127,14 @@ namespace CalcProject {
 
         private void button1_Click(object sender, EventArgs e) {
 
+
+            //Debug staff
             string[] s = new string[] { "3x1-3x2-4x3<=360", "2x1+3x2-4x3<=100"};
-            string tmp = validNumbers(txtZ.Text);
+            string tmp = validNumbers(txtZ.Text); //<--- ricorda questo 
 
             table = new cTable("Patata", tmp, s);
             Tables.Add(table);
+            //--------------
 
             rExpressions.Visible = label1.Visible =  button1.Visible = txtZ.Visible = false;
 
@@ -278,6 +288,30 @@ namespace CalcProject {
             if (txtZ.Text.Trim() == "") { txtZ.Text = "Inserire la funzione Z"; return; }
             button1.Enabled = true;
             //Da aggiungere la gestione cazzate
+        }
+
+        private void button2_Click(object sender, EventArgs e) {
+            Panel insertingWindow = new Panel();
+            insertingWindow.BorderStyle = BorderStyle.FixedSingle;
+            insertingWindow.Size = new Size(this.Size.Width * 2 / 3, this.Size.Height * 3/4);
+            insertingWindow.Location = new Point(this.Size.Width/5, -1);
+            insertingWindow.Name = "insertingWindow";
+            this.Controls.Add(insertingWindow);
+
+            TransPanel background = new TransPanel(this.Width, 
+                                                   this.Height, 
+                                                   Color.FromArgb(200, 192, 192, 192)
+                                                   );
+            background.Size = this.Size;
+            background.Location = new Point(0, 0);
+            background.Name = "background";
+            background.BackColor = Color.FromArgb(0, 192, 192, 192);
+            this.Controls.Add(background);
+
+            background.BringToFront();
+            insertingWindow.BringToFront();
+
+            
         }
     }
 }
