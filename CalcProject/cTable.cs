@@ -10,6 +10,37 @@ using System.IO;
 
 namespace CalcProject {
     class cTable {
+        private bool containsNumbers(string t) {
+            for (int i = 0; i < t.Length; i++) {
+                if (t[i] >= '0' && t[i] <= '9') return true;
+            }
+            return false;
+        }
+        /// <summary>
+        /// Se ci sono solo X ritorna true
+        /// </summary>
+        private bool onlyX(string t) {
+            for (int i = 0; i < t.Length; i++) {
+                bool isNumber = t[i] >= '0' && t[i] <= '9';
+                if (!isNumber) if (t[i] != 'x') return true;
+            }
+            return false;
+        }
+
+        private bool consecutiveNumbers(string t) {
+            List<int> tmp = new List<int>();
+            for (int i = 0; i < t.Length; i++) {
+                if (t[i] == 'x') tmp.Add(Convert.ToInt32(t[i + 1]) - 48);
+            }
+            //Input = { 5, 6, 7, 8 }
+            //Select restituisce { (5-0=)5, (6-1=)5, (7-2=)5, (8-3=)5 }
+            //Distinct restituisce { 5 }
+            //Skip restituisce { (5 skipped, nothing left) }
+            //Any ritorna false
+            if (tmp[0] != 1) return false;
+            return !tmp.Select((i, j) => i - j).Distinct().Skip(1).Any();
+        }
+
 
         /// <summary>
         /// Ricevi il nome dell'esercizio.
@@ -111,15 +142,34 @@ namespace CalcProject {
         /// <param name="Z">Stringa Z</param>
         /// <param name="sFunzioni">Insieme delle funzioni del sistema</param>
         /// <param name="exName">Nome dell'esercizio verrà visualizzato</param>
-        public cTable(string exName, string Z, string[] sFunzioni) {
+        public cTable(string exName, string Z, string[] sFunzioni, out string error) {
+            error = null;
+
+            Z = Z.Trim();
+            sFunzioni = sFunzioni.Select(x => x.Trim()).ToArray(); //Trimma tutto
+            string tut = "\nFare riferimento al tutorial";
+
+            //Questi if per gestire eventuali cavolate nell'inserimento dei dati
+            #region Gestione errore
+            if (!containsNumbers(Z) || !onlyX(Z)) { error = ("Errore nell'inserimento della Z" + tut); return; }
+            if (!consecutiveNumbers(Z)) { error = ("Errore nell'ordine delle variabili della Z" + tut); return; }
+            for(int i = 0; i < sFunzioni.Length; i++) {
+                if (!containsNumbers(sFunzioni[i]) || !onlyX(sFunzioni[i]))
+                    { error = ("Errore nell'inserimento delle funzioni" + tut); return; }
+                if (!consecutiveNumbers(sFunzioni[i]))
+                    { error = ("Errore nell'ordine delle variabili delle funzioni" + tut); return; }
+            }
+            #endregion
+
             this.nomeEsercizio = exName;
             this.sFunzioni = sFunzioni;
             this.sFunzioneZ = Z;
             //Lettura della Z
+            //http://regex101.com/r/aM4wZ6/#debugger
             string[] elemZ = Regex.Split(sFunzioneZ, "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
             elemZ = elemZ.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
             iBMax = elemZ.Length;
-            
+
 
             //sFunzioni[0] = 3x1-3x2-4x3
             //sVars[0] = {3x1, -3x2, -4x3}
@@ -134,7 +184,7 @@ namespace CalcProject {
                 tmp[tmp.Length - 1] = tmp[tmp.Length - 1].Replace(">", "");
                 sVars.Add(tmp);
 
-                
+
                 //Selezione dei termini noti della funzione
                 //tmp1 = variabile finale
                 for (int j = 0; j < tmp.Length - 1; j++) {
@@ -153,11 +203,8 @@ namespace CalcProject {
 
             for (int i = 0; i < sFunzioni.Length; i++) {
                 string tmp = setScarto(sFunzioni[i]);
-                if (tmp == "Errore") return; //Da creare gestione errore
-                else sFunzioni[i] = tmp;
+                sFunzioni[i] = tmp;
             }
-
-            
         }
         
         /// <summary>

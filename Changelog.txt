@@ -8,3 +8,4 @@ Minima ottimizzazione del codice
 Calcolo della variabile entrante
 13/04/2014 - Aggiunte le basi sull’inserimento MAC style. Fiquo.
 Da sostituire completamente tutta l’interfaccia iniziale
+14/04/2014 - Aggiunti i commenti e la gestione degli errori all’interno della classe

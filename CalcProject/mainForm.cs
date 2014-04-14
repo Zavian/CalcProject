@@ -56,34 +56,53 @@ namespace CalcProject {
         cTable table;
         BindingList<cTable> Tables = new BindingList<cTable>();
 
+        
+
+        /// <summary>
+        /// Questo metodo permette di creare la finestra di inserimento.
+        /// Essa va a creare tutti gli oggetti al suo interno e gestisce il loro comportamento.
+        /// All'interno della sezione è possibile trovare (in ordine di apparizione):
+        ///     - Il pannello "insertingWindow"
+        ///     - Il pannello "background"
+        ///     - Il metodo "createInsertingControls"
+        ///     - I metodi di gestione dei controlli nella finestra.
+        /// </summary>
         #region Sezione finestra di inserimento
         private void showInsertingWindow() {
-            Panel insertingWindow = new Panel();
-            insertingWindow.BorderStyle = BorderStyle.FixedSingle;
+            //Sezione per la creazione del pannello "insertingWindow".
+            Panel insertingWindow = new Panel(); //Oggetto, che per comodità si chiamerà come il controllo
+            insertingWindow.BorderStyle = BorderStyle.FixedSingle; //Border del pannello
+            //Larga 2/3 la form
+            //Alta 3/4 la form
             insertingWindow.Size = new Size(this.Size.Width * 2 / 3, this.Size.Height * 3 / 4);
-            insertingWindow.Location = new Point(this.Size.Width / 5, -1);
-            insertingWindow.Name = "insertingWindow";
-            this.Controls.Add(insertingWindow);
+            insertingWindow.Location = new Point(this.Size.Width / 5, -1); //-1 per non mostrare il bordo superiore
+            insertingWindow.Name = "insertingWindow"; //Nome con cui verrà visualizzato il controllo
+            this.Controls.Add(insertingWindow); //Per far sì che il controllo sia presente
 
+            //Sezione per la creazione del pannello "background"
+            //Oggetto, che per comodità si chiamerà come il controllo
             TransPanel background = new TransPanel(this.Width,
                                                    this.Height,
-                                                   Color.FromArgb(200, 192, 192, 192)
+                                                   Color.FromArgb(200, 192, 192, 192) //Argento con trasparenza 200 (max 255 = opaco)
                                                    );
-            background.Size = this.Size;
-            background.Location = new Point(0, 0);
             background.Name = "background";
-            background.BackColor = Color.FromArgb(0, 192, 192, 192);
+            background.Click += closeInsertingWindow;
             createInsertingControls(insertingWindow); //Solo ed esclusivamente per ordine del cordice
 
 
-            this.Controls.Add(background);
-            this.ActiveControl = insertingWindow;
+            this.Controls.Add(background); //Per far sì che il controllo sia presente
+            this.ActiveControl = insertingWindow; //Per rendere il tutto piacevole alla vista
 
-            background.BringToFront();
-            insertingWindow.BringToFront();
+            background.BringToFront(); //Mette in primo piano il background
+            insertingWindow.BringToFront(); //Mette in primo piano la finestra
         }
         private void createInsertingControls(Panel insertingWindow) {
-            List<Object> insertingWindowObjects = new List<object>();
+            //Semplicemente per dopo andare a scriver tutto con il foreach
+            List<Object> insertingWindowObjects = new List<object>(); 
+            
+
+            //Di qui in poi c'è la creazione di tutti gli oggetti che conterrà la insertingWindow
+            //Non andrò a spiegare in dettaglio. Sono solo impostazioni di grandezze, font & co.
 
             #region exerciseName
             TextBox exerciseName = new TextBox();
@@ -168,19 +187,43 @@ namespace CalcProject {
 
             insertingWindowObjects.Add(bAnalize);
             #endregion
+            #region bClose
+            Button bClose = new Button();
+            bClose.Size = new Size(100, 23);
+            bClose.Name = "bClose";
+            bClose.Location = new Point(
+                insertingWindow.Size.Width - 125,
+                insertingWindow.Size.Height - 40
+                );
+            bClose.Text = "Chiudi";
+            bClose.Click += closeInsertingWindow;
 
+            insertingWindowObjects.Add(bClose);
+            #endregion
 
+            //Per inserire tutti i controlli che ho appena creato nella insertingWindo (notare che la lista è di oggetti
+            //e non di controlli, come richiesto)
             foreach (var item in insertingWindowObjects) insertingWindow.Controls.Add(item as Control);
         }
 
+        void closeInsertingWindow(object sender, EventArgs e) {
+            //Metodo per chiudere la finestra dell'inserimento
+            this.Controls["insertingWindow"].Dispose();
+            this.Controls["background"].Dispose();
+        }
         void bAnalize_Click(object sender, EventArgs e) {
+            //Ancora da commentare dato che il metodo può essere soggetto a modifiche
+
             //Debug staff
             string[] s = new string[] { "3x1-3x2-4x3<=360", "2x1+3x2-4x3<=100" };
             string tmp = validNumbers(txtZ.Text); //<--- ricorda questo 
 
-            table = new cTable("Patata", tmp, s);
+            string errore;
+            table = new cTable("Patata", tmp, s, out errore);
+            if (errore != null) { MessageBox.Show(errore); return; }
             Tables.Add(table);
             //--------------
+            
 
             rExpressions.Visible = label1.Visible = button1.Visible = txtZ.Visible = false;
 
@@ -217,14 +260,17 @@ namespace CalcProject {
 
         }
         void bClear_Click(object sender, EventArgs e) {
-            foreach (var item in this.Controls["insertingWindow"].Controls) {
-                if (item is TextBox) {
-                    (item as TextBox).Text = "";
-                    dataTXTLeave(item as TextBox, null); //<-- Che genio che sono
+            //Gestione del clear all'interno della "insertingWindow"
+            foreach (var item in this.Controls["insertingWindow"].Controls) { //Scorre tutti i controlli all'interno della suddetta
+                if (item is TextBox) { //Scorre solo le textbox
+                    (item as TextBox).Text = ""; //Le pulisce
+                    dataTXTLeave(item as TextBox, null); //Fa si che si reimposti il testo
+                    //Che genio che sono
                 }
             }
         }
         void dataTXTLeave(object sender, EventArgs e) {
+            //Metodo che reimposta il testo all'interno delle textbox
             TextBox t = sender as TextBox;
             if (t.Text.Trim() == "") {
                 switch (t.Name) {
@@ -240,25 +286,69 @@ namespace CalcProject {
         }
         #endregion
 
+        /// <summary>
+        /// Utilizzato per estrarre il numero dalla cella
+        /// Gestisce sia un numero normale che un numero in forma frazionale
+        /// </summary>
+        /// <param name="t">Numero in formato stringa</param>
+        /// <returns></returns>
+        double getNumber(string t) {
+            t = t.Trim();
+            return itIsDivided(t) ? soDivideIt(t) : Convert.ToDouble(t);
+        }
+        bool itIsDivided(string t) {
+            for (int i = 0; i < t.Length; i++) {
+                if (t[i] == '/') return true;
+            }
+            return false;
+        }
+        private static double soDivideIt(string t) {
+            double p;
+            string t1, t2;
+            t1 = t.Split('/')[0];
+            t2 = t.Split('/')[1];
+            p = Convert.ToDouble(t1) / Convert.ToDouble(t2);
+            return p;
+        }
+
+        /// <summary>
+        /// Utilizzato per ricevere il datagrid attivo
+        /// </summary>
+        /// <returns>Datagrid Attivo.</returns>
         private DataGridView getDG() { return this.Controls["dg"] as DataGridView; }
+
+        /// <summary>
+        /// Utilizzato per prendere l'array della colonna con Cj come primo elemento
+        /// </summary>
+        /// <param name="dg">Datagrid da controllare</param>
+        /// <param name="columIndex">Indice della colonna da estrarre</param>
+        /// <returns>Array di double della colonna</returns>
         private double[] getColumn(DataGridView dg, int columIndex) {
             double[] ris;
+            //Se l'indice è 0 gestisce la prima colonna in modo corretto
+            //dato che in quel caso non deve prendere la cj
             int add = columIndex == 0 ? 0 : 1;
-            ris = new double[table.Functions.Count() + add];
-            if (add == 1) ris[0] = Convert.ToDouble(dg[columIndex, table.Functions.Count()].Value);
+            ris = new double[table.Functions.Count() + add];  //+ add se c'è la cj
+            if (add == 1) ris[0] = getNumber(dg[columIndex, table.Functions.Count()].Value.ToString());
             for (int i = 0; i < table.Functions.Count(); i++) {
-                ris[i + add] = Convert.ToDouble(dg[columIndex, i].Value);
+                ris[i + add] = getNumber(dg[columIndex, i].Value.ToString());
             }
 
             return ris;
         }
+
+        /// <summary>
+        /// Utilizzato per determinare la variabile entrante
+        /// </summary>
+        /// <param name="dg">Datagrid da controllare</param>
+        /// <returns>Stringa contenente la xn entrante</returns>
         private string enteringVar(DataGridView dg) {
             int dc = table.nVariabili;
             double[] myArray = new double[table.nVariabiliScarto];
             for (int i = 0; i < myArray.Length; i++) { myArray[i] = double.MinValue; }
             for (int i = 2; i < dg.Columns.Count - 1; i++) {
                 string header = dg.Columns[i].HeaderText;
-                if (isBaseVar(header, dg) == -1) { //Se non è una variabile di base
+                if (isBaseVar(dg, header) == -1) { //Se non è una variabile di base
                     double ris = 0;
                     double[] column = getColumn(dg, i), cb = getColumn(dg, 0);
 
@@ -280,23 +370,48 @@ namespace CalcProject {
             MessageBox.Show("La variabile entrante è: x" + maxIndex.ToString());
             return "x" + maxIndex.ToString();
         }
-        private int isBaseVar(string s, DataGridView dg) {
+
+        /// <summary>
+        /// Utilizzato per determinare se la variabile è di base
+        /// </summary>
+        /// <param name="dg">Datagrid da controllare</param>
+        /// <param name="s">Variabile in forma di stringa</param>
+        /// <returns></returns>
+        private int isBaseVar(DataGridView dg, string s) {
+            //Questo metodo prende le stringhe nella prima colonna
+            //e le compara con la stringa richiesta
             for (int r = 0; r < dg.RowCount - 2; r++) {
                 string tmp = dg[1, r].Value.ToString();
                 if (tmp == s) return r;
             }
             return -1;
         }       
-        private int getColumnByHeader(string s, DataGridView dg) {
+
+        /// <summary>
+        /// Utilizzato per determinare la colonna data la variabile in stringa
+        /// </summary>
+        /// <param name="dg">Datagrid da controllare</param>
+        /// <param name="s">Variabile in forma di stringa</param>
+        /// <returns>Indice della colonna richiesta</returns>
+        private int getColumnByHeader(DataGridView dg, string s ) {
             for (int i = 0; i < dg.Columns.Count; i++) {
                 if (dg.Columns[i].HeaderText == s) return i;
             }
             return -1;
         }     
+
+        /// <summary>
+        /// Utilizzato per esplicitare i numeri impliciti
+        /// </summary>
+        /// <param name="t">Funzione da controllare</param>
+        /// <returns></returns>
         private string validNumbers(string t) /*Questo metodo serve per gestire il fatto che non si metta un numero davanti alla X */ {
+            //http://regex101.com/r/aM4wZ6/#debugger
             string[] tmp = Regex.Split(t, "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
             tmp = tmp.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
             for (int i = 0; i < tmp.Length; i++) {
+                //Se il coeffieciente non è esplicito (quindi es: x1)
+                //va ad aggiungerlo
                 int n = tmp[i][0] == '+' || tmp[i][0] == '-' ? 1 : 0;
                 if (tmp[i][n] > '9' || tmp[i][n] < '0') tmp[i] = tmp[i].Insert(n, "1");
             }
@@ -313,7 +428,9 @@ namespace CalcProject {
             string[] s = new string[] { "3x1-3x2-4x3<=360", "2x1+3x2-4x3<=100"};
             string tmp = validNumbers(txtZ.Text); //<--- ricorda questo 
 
-            table = new cTable("Patata", tmp, s);
+            string errore;
+            table = new cTable("Patata", tmp, s, out errore);
+            if (errore != null) { MessageBox.Show(errore); return; }
             Tables.Add(table);
             //--------------
 
@@ -443,7 +560,7 @@ namespace CalcProject {
         private void writeCb(cTable t, DataGridView dg) {
             for (int r = 0; r < t.Functions.Length; r++) {
                 string str = dg[1, r].Value.ToString();
-                int column = getColumnByHeader(str, dg);
+                int column = getColumnByHeader(dg, str);
                 int row = t.Functions.Length + 1;
                 dg[0, r].Value = dg[column, row].Value;
             }
@@ -452,7 +569,7 @@ namespace CalcProject {
             int sabIndex = dg.RowCount - 1;
             for (int c = 2; c < dg.ColumnCount - 1; c++) {
                 string header = dg.Columns[c].HeaderText;
-                int BaseIndex = isBaseVar(header, dg);
+                int BaseIndex = isBaseVar(dg, header);
                 if (BaseIndex > -1) {
 
                     dg[c, sabIndex].Value = dg[dg.ColumnCount - 1, BaseIndex].Value;
