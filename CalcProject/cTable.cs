@@ -10,6 +10,7 @@ using System.IO;
 
 namespace CalcProject {
     class cTable {
+
         private bool containsNumbers(string t) {
             for (int i = 0; i < t.Length; i++) {
                 if (t[i] >= '0' && t[i] <= '9') return true;
@@ -21,10 +22,10 @@ namespace CalcProject {
         /// </summary>
         private bool onlyX(string t) {
             for (int i = 0; i < t.Length; i++) {
-                bool isNumber = t[i] >= '0' && t[i] <= '9';
-                if (!isNumber) if (t[i] != 'x') return true;
+                bool isNumber = t[i] >= '0' && t[i] <= '9' || t[i] == '-' || t[i] == '+' || t[i] == '/';
+                if (!isNumber) if (t[i] != 'x') return false;
             }
-            return false;
+            return true;
         }
 
         private bool consecutiveNumbers(string t) {
@@ -32,6 +33,7 @@ namespace CalcProject {
             for (int i = 0; i < t.Length; i++) {
                 if (t[i] == 'x') tmp.Add(Convert.ToInt32(t[i + 1]) - 48);
             }
+
             //Input = { 5, 6, 7, 8 }
             //Select restituisce { (5-0=)5, (6-1=)5, (7-2=)5, (8-3=)5 }
             //Distinct restituisce { 5 }
@@ -147,18 +149,21 @@ namespace CalcProject {
 
             Z = Z.Trim();
             sFunzioni = sFunzioni.Select(x => x.Trim()).ToArray(); //Trimma tutto
-            string tut = "\nFare riferimento al tutorial";
+            
 
             //Questi if per gestire eventuali cavolate nell'inserimento dei dati
             #region Gestione errore
+            string tut = "\nFare riferimento al tutorial";
             if (!containsNumbers(Z) || !onlyX(Z)) { error = ("Errore nell'inserimento della Z" + tut); return; }
             if (!consecutiveNumbers(Z)) { error = ("Errore nell'ordine delle variabili della Z" + tut); return; }
-            for(int i = 0; i < sFunzioni.Length; i++) {
-                if (!containsNumbers(sFunzioni[i]) || !onlyX(sFunzioni[i]))
-                    { error = ("Errore nell'inserimento delle funzioni" + tut); return; }
-                if (!consecutiveNumbers(sFunzioni[i]))
-                    { error = ("Errore nell'ordine delle variabili delle funzioni" + tut); return; }
-            }
+
+            //Da mettere apposto e gestire la parte destra della funzione
+            //for(int i = 0; i < sFunzioni.Length; i++) {
+            //    if (!containsNumbers(sFunzioni[i]) || !onlyX(sFunzioni[i]))
+            //        { error = ("Errore nell'inserimento delle funzioni" + tut); return; }
+            //    if (!consecutiveNumbers(sFunzioni[i]))
+            //        { error = ("Errore nell'ordine delle variabili delle funzioni" + tut); return; }
+            //}
             #endregion
 
             this.nomeEsercizio = exName;

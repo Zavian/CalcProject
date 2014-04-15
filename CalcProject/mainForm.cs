@@ -54,6 +54,7 @@ namespace CalcProject {
         }
 
         cTable table;
+        List<DataGridView> DGs = new List<DataGridView>();
         BindingList<cTable> Tables = new BindingList<cTable>();
 
         
@@ -327,7 +328,7 @@ namespace CalcProject {
             double[] ris;
             //Se l'indice è 0 gestisce la prima colonna in modo corretto
             //dato che in quel caso non deve prendere la cj
-            int add = columIndex == 0 ? 0 : 1;
+            int add = columIndex == 0 || columIndex == dg.ColumnCount - 1 ? 0 : 1;
             ris = new double[table.Functions.Count() + add];  //+ add se c'è la cj
             if (add == 1) ris[0] = getNumber(dg[columIndex, table.Functions.Count()].Value.ToString());
             for (int i = 0; i < table.Functions.Count(); i++) {
@@ -369,6 +370,47 @@ namespace CalcProject {
             maxIndex += 1;
             MessageBox.Show("La variabile entrante è: x" + maxIndex.ToString());
             return "x" + maxIndex.ToString();
+        }
+
+        /// <summary>
+        /// Utilizzato per determinare la variabile uscente
+        /// </summary>
+        /// <param name="dg">Datagrid da controllare</param>
+        /// <param name="enteringVar">Variabile entrante in forma di stringa</param>
+        /// <returns>[0] = Variabile uscente.
+        /// [1] = Pivot</returns>
+        private string[] exitingVar(DataGridView dg, string enteringVar) {
+            int dc = table.nVariabili;
+            double[] myArray = new double[table.nVariabiliScarto];
+            for (int i = 0; i < myArray.Length; i++) { myArray[i] = double.MaxValue; }
+
+            getColumn(dg, dg.ColumnCount - 1);
+            int columnIndex = getColumnByHeader(dg, enteringVar);
+            for (int i = 0; i < table.Functions.Length; i++) {
+                myArray[i] = getNumber(dg[columnIndex, i].Value.ToString()) / getColumn(dg, dg.ColumnCount - 1)[i];                              
+            }
+            double minValue = myArray.Min();
+            int minIndex = myArray.ToList().IndexOf(minValue);
+            double pivot = getNumber(dg[columnIndex, minIndex].Value.ToString());
+            MessageBox.Show("La variabile uscente è: " + dg[1, minIndex].Value.ToString());
+            string[] returner = { dg[1, minIndex].Value.ToString(), pivot.ToString() };
+            return returner;
+        }
+
+        private int editBaseVar(DataGridView dg, string enteringVar, string exitingVar) {
+            for (int i = 0; i < dg.RowCount; i++) {
+                if (dg[1, i].Value.ToString() == exitingVar) { dg[1, i].Value = enteringVar; return i; }
+            }
+            return -1;
+        }
+
+        private void calculateNewTable(DataGridView dg, string enteringVar, string exitingVar, string pivot) {
+            DGs.Add(dg);            
+            int rowIndex = editBaseVar(dg, enteringVar, exitingVar);
+            if (rowIndex == -1) return;
+            for (int i = 0; i < dg.ColumnCount - 2; i++) {
+                dg[i + 2, rowIndex].Value = getNumber(dg[i + 2, rowIndex].Value.ToString()) / getNumber(pivot);
+            }
         }
 
         /// <summary>
@@ -493,7 +535,11 @@ namespace CalcProject {
         }
         void bNext_Click(object sender, EventArgs e) {
             DataGridView dg = getDG();
-            enteringVar(dg);
+            string entering = enteringVar(dg);
+            string[] exiting = exitingVar(dg, entering);
+
+            calculateNewTable(dg, entering, exiting[0], exiting[1]);
+            this.Controls["dg"].Refresh();
         }
 
         private DataGridView createDataGrid(cTable table) {
