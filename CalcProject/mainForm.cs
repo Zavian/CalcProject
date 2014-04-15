@@ -11,6 +11,10 @@ using System.Text.RegularExpressions;
 namespace CalcProject {
     public partial class mainForm : Form {
 
+        //I summary verranno messi a codice completo, dato che può essere
+        //soggetto a modifiche (e i summary sono fastidiosi)
+        //Per ora si avranno summary delle regions
+
 
 
         public mainForm() {
@@ -57,17 +61,37 @@ namespace CalcProject {
         List<DataGridView> DGs = new List<DataGridView>();
         BindingList<cTable> Tables = new BindingList<cTable>();
 
-        
+        #region Metodi di controllo
+        private string validNumbers(string t) /*Questo metodo serve per gestire il fatto che non si metta un numero davanti alla X */ {
+            //http://regex101.com/r/aM4wZ6/#debugger
+            string[] tmp = Regex.Split(t, "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
+            tmp = tmp.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
+            for (int i = 0; i < tmp.Length; i++) {
+                //Se il coeffieciente non è esplicito (quindi es: x1)
+                //va ad aggiungerlo
+                int n = tmp[i][0] == '+' || tmp[i][0] == '-' ? 1 : 0;
+                if (tmp[i][n] > '9' || tmp[i][n] < '0') tmp[i] = tmp[i].Insert(n, "1");
+            }
+            string s = "";
+            for (int i = 0; i < tmp.Length; i++) {
+                s += tmp[i];
+            }
+            return s;
+        }
+
+        #endregion
+
 
         /// <summary>
-        /// Questo metodo permette di creare la finestra di inserimento.
-        /// Essa va a creare tutti gli oggetti al suo interno e gestisce il loro comportamento.
+        /// Questi metodo permette di creare la finestra di inserimento.
+        /// Essi va a creare tutti gli oggetti al suo interno e gestiscono il loro comportamento.
         /// All'interno della sezione è possibile trovare (in ordine di apparizione):
         ///     - Il pannello "insertingWindow"
         ///     - Il pannello "background"
         ///     - Il metodo "createInsertingControls"
         ///     - I metodi di gestione dei controlli nella finestra.
         /// </summary>
+        ///
         #region Sezione finestra di inserimento
         private void showInsertingWindow() {
             //Sezione per la creazione del pannello "insertingWindow".
@@ -99,9 +123,7 @@ namespace CalcProject {
         }
         private void createInsertingControls(Panel insertingWindow) {
             //Semplicemente per dopo andare a scriver tutto con il foreach
-            List<Object> insertingWindowObjects = new List<object>(); 
-            
-
+            List<Object> insertingWindowObjects = new List<object>();
             //Di qui in poi c'è la creazione di tutti gli oggetti che conterrà la insertingWindow
             //Non andrò a spiegare in dettaglio. Sono solo impostazioni di grandezze, font & co.
 
@@ -285,14 +307,36 @@ namespace CalcProject {
             TextBox t = sender as TextBox;
             if (t.Text.Contains("Inserire")) t.Clear();
         }
+
+        void bPrev_Click(object sender, EventArgs e) {
+            throw new NotImplementedException();
+        }
+        void bNext_Click(object sender, EventArgs e) {
+            DataGridView dg = getDG();
+            string entering = enteringVar(dg);
+            if (entering == "fine") { this.Controls["bNext"].Enabled = false; return; }
+
+            string[] exiting = exitingVar(dg, entering);
+            calculateNewTable(dg, entering, exiting[0], exiting[1]);
+            writeSab(dg);
+            writeCb(table, dg);            
+            this.Controls["dg"].Refresh();
+        }
         #endregion
 
         /// <summary>
-        /// Utilizzato per estrarre il numero dalla cella
-        /// Gestisce sia un numero normale che un numero in forma frazionale
+        /// Questi metodi sono stati creati dato che vengono più e più volte
+        /// richiamati all'interno del programma per avere oggetti e array.
+        /// All'interno della sezione è possibile trovare (in ordine di apparizione):
+        ///     - GetNumber:            Vari metodi per la gestione dei numeri dentro la form.
+        ///     - getDG:                Ritorna il DataGridView attivo nel programma.
+        ///     - getColumn:            Restituisce la colonna richiesta.
+        ///     - getColumnByHeader:    Restituisce la colonna in base all'header.
+        ///     
         /// </summary>
-        /// <param name="t">Numero in formato stringa</param>
-        /// <returns></returns>
+        /// 
+        #region Sezione request object
+        #region GetNumber
         double getNumber(string t) {
             t = t.Trim();
             return itIsDivided(t) ? soDivideIt(t) : Convert.ToDouble(t);
@@ -311,19 +355,8 @@ namespace CalcProject {
             p = Convert.ToDouble(t1) / Convert.ToDouble(t2);
             return p;
         }
-
-        /// <summary>
-        /// Utilizzato per ricevere il datagrid attivo
-        /// </summary>
-        /// <returns>Datagrid Attivo.</returns>
+        #endregion
         private DataGridView getDG() { return this.Controls["dg"] as DataGridView; }
-
-        /// <summary>
-        /// Utilizzato per prendere l'array della colonna con Cj come primo elemento
-        /// </summary>
-        /// <param name="dg">Datagrid da controllare</param>
-        /// <param name="columIndex">Indice della colonna da estrarre</param>
-        /// <returns>Array di double della colonna</returns>
         private double[] getColumn(DataGridView dg, int columIndex) {
             double[] ris;
             //Se l'indice è 0 gestisce la prima colonna in modo corretto
@@ -335,213 +368,37 @@ namespace CalcProject {
                 ris[i + add] = getNumber(dg[columIndex, i].Value.ToString());
             }
 
+            //Il return in base che la colonna non sia l'ultima o la prima
+            //[0] -> Cj, il resto la colonna.
             return ris;
         }
-
-        /// <summary>
-        /// Utilizzato per determinare la variabile entrante
-        /// </summary>
-        /// <param name="dg">Datagrid da controllare</param>
-        /// <returns>Stringa contenente la xn entrante</returns>
-        private string enteringVar(DataGridView dg) {
-            int dc = table.nVariabili;
-            double[] myArray = new double[table.nVariabiliScarto];
-            for (int i = 0; i < myArray.Length; i++) { myArray[i] = double.MinValue; }
-            for (int i = 2; i < dg.Columns.Count - 1; i++) {
-                string header = dg.Columns[i].HeaderText;
-                if (isBaseVar(dg, header) == -1) { //Se non è una variabile di base
-                    double ris = 0;
-                    double[] column = getColumn(dg, i), cb = getColumn(dg, 0);
-
-                    ris = column[0]; //cj
-                    double parteDestra = 0;
-                    for (int k = 1; k < column.Length; k++) {
-                        parteDestra += column[k] * cb[k - 1];
-                    }
-
-                    ris -= parteDestra;
-                    myArray[i - 2] = ris;
-                }
-                
-            }
-
-            double maxValue = myArray.Max();
-            int maxIndex = myArray.ToList().IndexOf(maxValue);
-            maxIndex += 1;
-            MessageBox.Show("La variabile entrante è: x" + maxIndex.ToString());
-            return "x" + maxIndex.ToString();
-        }
-
-        /// <summary>
-        /// Utilizzato per determinare la variabile uscente
-        /// </summary>
-        /// <param name="dg">Datagrid da controllare</param>
-        /// <param name="enteringVar">Variabile entrante in forma di stringa</param>
-        /// <returns>[0] = Variabile uscente.
-        /// [1] = Pivot</returns>
-        private string[] exitingVar(DataGridView dg, string enteringVar) {
-            int dc = table.nVariabili;
-            double[] myArray = new double[table.nVariabiliScarto];
-            for (int i = 0; i < myArray.Length; i++) { myArray[i] = double.MaxValue; }
-
-            getColumn(dg, dg.ColumnCount - 1);
-            int columnIndex = getColumnByHeader(dg, enteringVar);
-            for (int i = 0; i < table.Functions.Length; i++) {
-                myArray[i] = getNumber(dg[columnIndex, i].Value.ToString()) / getColumn(dg, dg.ColumnCount - 1)[i];                              
-            }
-            double minValue = myArray.Min();
-            int minIndex = myArray.ToList().IndexOf(minValue);
-            double pivot = getNumber(dg[columnIndex, minIndex].Value.ToString());
-            MessageBox.Show("La variabile uscente è: " + dg[1, minIndex].Value.ToString());
-            string[] returner = { dg[1, minIndex].Value.ToString(), pivot.ToString() };
-            return returner;
-        }
-
-        private int editBaseVar(DataGridView dg, string enteringVar, string exitingVar) {
-            for (int i = 0; i < dg.RowCount; i++) {
-                if (dg[1, i].Value.ToString() == exitingVar) { dg[1, i].Value = enteringVar; return i; }
-            }
-            return -1;
-        }
-
-        private void calculateNewTable(DataGridView dg, string enteringVar, string exitingVar, string pivot) {
-            DGs.Add(dg);            
-            int rowIndex = editBaseVar(dg, enteringVar, exitingVar);
-            if (rowIndex == -1) return;
-            for (int i = 0; i < dg.ColumnCount - 2; i++) {
-                dg[i + 2, rowIndex].Value = getNumber(dg[i + 2, rowIndex].Value.ToString()) / getNumber(pivot);
-            }
-        }
-
-        /// <summary>
-        /// Utilizzato per determinare se la variabile è di base
-        /// </summary>
-        /// <param name="dg">Datagrid da controllare</param>
-        /// <param name="s">Variabile in forma di stringa</param>
-        /// <returns></returns>
-        private int isBaseVar(DataGridView dg, string s) {
-            //Questo metodo prende le stringhe nella prima colonna
-            //e le compara con la stringa richiesta
-            for (int r = 0; r < dg.RowCount - 2; r++) {
-                string tmp = dg[1, r].Value.ToString();
-                if (tmp == s) return r;
-            }
-            return -1;
-        }       
-
-        /// <summary>
-        /// Utilizzato per determinare la colonna data la variabile in stringa
-        /// </summary>
-        /// <param name="dg">Datagrid da controllare</param>
-        /// <param name="s">Variabile in forma di stringa</param>
-        /// <returns>Indice della colonna richiesta</returns>
-        private int getColumnByHeader(DataGridView dg, string s ) {
+        private int getColumnByHeader(DataGridView dg, string s) {
             for (int i = 0; i < dg.Columns.Count; i++) {
                 if (dg.Columns[i].HeaderText == s) return i;
             }
             return -1;
-        }     
+        }
+        #endregion
+
 
         /// <summary>
-        /// Utilizzato per esplicitare i numeri impliciti
+        /// Questi metodi sono stati creati per la generazione di tabelle
+        /// e la gestione delle stesse nel cambio di tabella e nei calcoli.
+        /// All'interno della sezione è possibile trovare (in ordine di apparizione):
+        ///     -createDataGrid:    Creazione dell'oggetto iniziale
+        ///     -writeHeaders:      Scrittura degli headers dell'oggetto
+        ///     -writeTableNumbers: Scrittura dei numeri nella tabella
+        ///     -writeB:            Scrittura della B
+        ///     -writeCb:           Scrittura della Cb
+        ///     -writeSab:          Scrittura della Sab
+        ///     -isBaseVar:         Controllo se la variabile è di base
+        ///     -enteringVar:       Calcolo variabile entrante
+        ///     -exitingVar:        Calcolo variabile uscente
+        ///     -calculateNewTable: Calcolo della tabella successiva
+        ///     -editBaseVar:       Sostituzione della variabile di base uscente con quella entrante
         /// </summary>
-        /// <param name="t">Funzione da controllare</param>
-        /// <returns></returns>
-        private string validNumbers(string t) /*Questo metodo serve per gestire il fatto che non si metta un numero davanti alla X */ {
-            //http://regex101.com/r/aM4wZ6/#debugger
-            string[] tmp = Regex.Split(t, "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
-            tmp = tmp.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
-            for (int i = 0; i < tmp.Length; i++) {
-                //Se il coeffieciente non è esplicito (quindi es: x1)
-                //va ad aggiungerlo
-                int n = tmp[i][0] == '+' || tmp[i][0] == '-' ? 1 : 0;
-                if (tmp[i][n] > '9' || tmp[i][n] < '0') tmp[i] = tmp[i].Insert(n, "1");
-            }
-            string s = "";
-            for (int i = 0; i < tmp.Length; i++) {
-                s += tmp[i];
-            }
-            return s;
-        }
-
-
-        private void button1_Click(object sender, EventArgs e) {
-            //Debug staff
-            string[] s = new string[] { "3x1-3x2-4x3<=360", "2x1+3x2-4x3<=100"};
-            string tmp = validNumbers(txtZ.Text); //<--- ricorda questo 
-
-            string errore;
-            table = new cTable("Patata", tmp, s, out errore);
-            if (errore != null) { MessageBox.Show(errore); return; }
-            Tables.Add(table);
-            //--------------
-
-            rExpressions.Visible = label1.Visible =  button1.Visible = txtZ.Visible = false;
-
-
-            DataGridView dg = createDataGrid(table); 
-            writeHeaders(table, dg);
-            writeTableNumbers(table, dg);
-            writeB(table, dg);
-            writeCb(table, dg);
-            writeSab(dg);
-
-
-
-
-            Button bNext, bPrev;
-            bNext = new Button();
-            bNext.Name = "bNext";
-            bNext.Text = ">";
-            bNext.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) + 5, dg.Location.Y + dg.Height + 5);
-            this.Controls.Add(bNext);
-            bNext.Click += bNext_Click;
-
-            bPrev = new Button();
-            bPrev.Name = "bPrev";
-            bPrev.Text = "<";
-            bPrev.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) - bNext.Width, dg.Location.Y + dg.Height + 5);
-            bPrev.Enabled = false;
-            this.Controls.Add(bPrev);
-            bPrev.Click += bPrev_Click;
-
-
-            #region #DEPRECATED
-                //for (int i = 0; i < t.Numbers.Count; i++) {
-                //    string tmp = "";
-                //    for (int j = 0; j < t.Numbers[i].Length; j++) {
-                //        tmp += t.Numbers[i][j] + " ";
-                //    }
-                //    rExpressions.Text += tmp;
-                //}
-                //rExpressions.Text += "\n";
-
-                //for (int i = 0; i < t.Functions.Length; i++) {
-                //    rExpressions.Text += t.Functions[i];
-                //}
-
-                #endregion
-
-            rExpressions.Dispose();
-            label1.Dispose();
-            txtZ.Dispose();
-            button1.Dispose();
-
-            
-        }
-
-        void bPrev_Click(object sender, EventArgs e) {
-            throw new NotImplementedException();
-        }
-        void bNext_Click(object sender, EventArgs e) {
-            DataGridView dg = getDG();
-            string entering = enteringVar(dg);
-            string[] exiting = exitingVar(dg, entering);
-
-            calculateNewTable(dg, entering, exiting[0], exiting[1]);
-            this.Controls["dg"].Refresh();
-        }
-
+        ///
+        #region Sezione calcoli tabelle e simplessi
         private DataGridView createDataGrid(cTable table) {
             DataGridView dg = new DataGridView();
             dg.Name = "dg";
@@ -597,7 +454,6 @@ namespace CalcProject {
                 }
             }
         }
-
         private static void writeB(cTable t, DataGridView dg) {
             for (int r = 0; r < t.Vars.Count; r++) {
                 dg[dg.Columns.Count - 1, r].Value = t.Vars[r][3];
@@ -623,7 +479,151 @@ namespace CalcProject {
             }
         }
 
-        
+        private int isBaseVar(DataGridView dg, string s) {
+            //Questo metodo prende le stringhe nella prima colonna
+            //e le compara con la stringa richiesta
+            for (int r = 0; r < dg.RowCount - 2; r++) {
+                string tmp = dg[1, r].Value.ToString();
+                if (tmp == s) return r;
+            }
+            return -1;
+        }       
+        private string enteringVar(DataGridView dg) {
+            int dc = table.nVariabili;
+            double[] myArray = new double[table.nVariabiliScarto];
+            for (int i = 0; i < myArray.Length; i++) { myArray[i] = double.MinValue; }
+            for (int i = 2; i < dg.Columns.Count - 1; i++) {
+                string header = dg.Columns[i].HeaderText;
+                if (isBaseVar(dg, header) == -1) { //Se non è una variabile di base
+                    double ris = 0;
+                    double[] column = getColumn(dg, i), cb = getColumn(dg, 0);
+
+                    ris = column[0]; //cj
+                    double parteDestra = 0;
+                    for (int k = 1; k < column.Length; k++) {
+                        parteDestra += column[k] * cb[k - 1];
+                    }
+
+                    ris -= parteDestra;
+                    myArray[i - 2] = ris;
+                }
+
+            }
+            int negNumbers = 0;
+            for (int i = 0; i < myArray.Length; i++) { negNumbers += myArray[i] <= 0 ? 1 : 0; }
+            bool allNeg = negNumbers == myArray.Length;
+
+            if (!allNeg) {
+                double maxValue = myArray.Max();
+                int maxIndex = myArray.ToList().IndexOf(maxValue);
+                maxIndex += 1;
+                MessageBox.Show("La variabile entrante è: x" + maxIndex.ToString());
+                return "x" + maxIndex.ToString();
+            }
+            else { MessageBox.Show("Non è più possibile andare avanti."); return "fine"; }
+        }
+        private string[] exitingVar(DataGridView dg, string enteringVar) {
+            int dc = table.nVariabili;
+            double[] myArray = new double[table.nVariabiliScarto];
+            for (int i = 0; i < myArray.Length; i++) { myArray[i] = double.MaxValue; }
+
+            getColumn(dg, dg.ColumnCount - 1);
+            int columnIndex = getColumnByHeader(dg, enteringVar);
+            for (int i = 0; i < table.Functions.Length; i++) {
+                myArray[i] = getNumber(dg[columnIndex, i].Value.ToString()) / getColumn(dg, dg.ColumnCount - 1)[i];
+            }
+            double minValue = myArray.Min();
+            int minIndex = myArray.ToList().IndexOf(minValue);
+            double pivot = getNumber(dg[columnIndex, minIndex].Value.ToString());
+            MessageBox.Show("La variabile uscente è: " + dg[1, minIndex].Value.ToString());
+            string[] returner = { dg[1, minIndex].Value.ToString(), pivot.ToString() };
+            return returner;
+        }
+
+        private void calculateNewTable(DataGridView dg, string enteringVar, string exitingVar, string pivot) {
+            DGs.Add(dg);
+            int rowIndex = editBaseVar(dg, enteringVar, exitingVar);
+            if (rowIndex == -1) return;
+            for (int i = 0; i < dg.ColumnCount - 2; i++) {
+                dg[i + 2, rowIndex].Value = getNumber(dg[i + 2, rowIndex].Value.ToString()) / getNumber(pivot);
+            }
+        }
+        private int editBaseVar(DataGridView dg, string enteringVar, string exitingVar) {
+            for (int i = 0; i < dg.RowCount; i++) {
+                if (dg[1, i].Value.ToString() == exitingVar) { dg[1, i].Value = enteringVar; return i; }
+            }
+            return -1;
+        }
+        #endregion
+
+        #region Event Handlers Form
+        //Questo è temporaneo
+        private void button1_Click(object sender, EventArgs e) {
+            //Debug staff
+            string[] s = new string[] { "3x1-3x2-4x3<=360", "2x1+3x2-4x3<=100" };
+            string tmp = validNumbers(txtZ.Text); //<--- ricorda questo 
+
+            string errore;
+            table = new cTable("Patata", tmp, s, out errore);
+            if (errore != null) { MessageBox.Show(errore); return; }
+            Tables.Add(table);
+            //--------------
+
+            rExpressions.Visible = label1.Visible = button1.Visible = txtZ.Visible = false;
+
+
+            DataGridView dg = createDataGrid(table);
+            writeHeaders(table, dg);
+            writeTableNumbers(table, dg);
+            writeB(table, dg);
+            writeSab(dg);
+            writeCb(table, dg);
+            
+
+
+
+
+            Button bNext, bPrev;
+            bNext = new Button();
+            bNext.Name = "bNext";
+            bNext.Text = ">";
+            bNext.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) + 5, dg.Location.Y + dg.Height + 5);
+            this.Controls.Add(bNext);
+            bNext.Click += bNext_Click;
+
+            bPrev = new Button();
+            bPrev.Name = "bPrev";
+            bPrev.Text = "<";
+            bPrev.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) - bNext.Width, dg.Location.Y + dg.Height + 5);
+            bPrev.Enabled = false;
+            this.Controls.Add(bPrev);
+            bPrev.Click += bPrev_Click;
+
+
+            #region #DEPRECATED
+            //for (int i = 0; i < t.Numbers.Count; i++) {
+            //    string tmp = "";
+            //    for (int j = 0; j < t.Numbers[i].Length; j++) {
+            //        tmp += t.Numbers[i][j] + " ";
+            //    }
+            //    rExpressions.Text += tmp;
+            //}
+            //rExpressions.Text += "\n";
+
+            //for (int i = 0; i < t.Functions.Length; i++) {
+            //    rExpressions.Text += t.Functions[i];
+            //}
+
+            #endregion
+
+            rExpressions.Dispose();
+            label1.Dispose();
+            txtZ.Dispose();
+            button1.Dispose();
+
+
+        }
+
 
         private void txtZ_Enter(object sender, EventArgs e) {
             txtZ.Text = "";
@@ -634,9 +634,29 @@ namespace CalcProject {
             //Da aggiungere la gestione cazzate
         }
 
+        //Questo si chiamerà in un altro modo
         private void button2_Click(object sender, EventArgs e) {
-            showInsertingWindow();           
+            showInsertingWindow();
         }
+        #endregion
+
+
+
+
+
+
+
+
+
+
+
+        
+
+        
+        
+
+        
+
 
 
 
