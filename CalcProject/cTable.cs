@@ -87,13 +87,19 @@ namespace CalcProject {
         /// Ricevi l'array di stringhe delle funzioni.
         /// </summary>
         public string[] Functions { get { return sFunzioni; } }
+
+        /// <summary>
+        /// Ricevi l'indice della tabella.
+        /// </summary>
+        public int tableIndex { get { return tIndex; } set { tIndex = value; } }
         
          string nomeEsercizio = "";
          string problema = ""; //min|max
         
         string sFunzioneZ;
         string[] sFunzioni;
-       
+
+        int tIndex = 0;
         int iBMax = 0;
         int iSMax = 0;
         List<String[]> sVars = new List<string[]>();
@@ -146,6 +152,8 @@ namespace CalcProject {
         /// <param name="exName">Nome dell'esercizio verrà visualizzato</param>
         public cTable(string exName, string Z, string[] sFunzioni, out string error) {
             error = null;
+            tIndex = 0;
+
 
             Z = Z.Trim();
             sFunzioni = sFunzioni.Select(x => x.Trim()).ToArray(); //Trimma tutto

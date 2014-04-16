@@ -15,7 +15,7 @@ namespace CalcProject {
         //soggetto a modifiche (e i summary sono fastidiosi)
         //Per ora si avranno summary delle regions
 
-
+        bool placed = false;
 
         public mainForm() {
             InitializeComponent();
@@ -23,21 +23,32 @@ namespace CalcProject {
 
             
 
-            button1.Enabled = false;
+            ////button1.Enabled = false;
 
-            //Gestione contenuti e grafica della listbox
-            this.listBox1.DrawMode = DrawMode.OwnerDrawVariable;
-            this.listBox1.DataSource = Tables;
-            this.listBox1.DisplayMember = "exName";
-            this.listBox1.ValueMember = "exName";
-            this.listBox1.ItemHeight = 20;
-            this.listBox1.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.myListBox_DrawItem);
-
+            
 
             //Debug stuff
-            txtZ.Text = "3x1+3x2+4x3";
+            //txtZ.Text = "3x1+3x2+4x3";
             //button1_Click(null, null); //<--- ROBA DA DEBUG IMPORTANTE
             //---------------
+        }
+
+        private void placeListBox() {
+            placed = true;
+            stripMenu.Visible = true;
+            ListBox lst = new ListBox();
+            lst.Name = "lstExercises";
+            lst.BackColor = Color.Silver;
+            lst.DrawMode = DrawMode.OwnerDrawVariable;
+            lst.DataSource = Tables;
+            lst.DisplayMember = "exName";
+            lst.ValueMember = "tableIndex";
+            lst.ItemHeight = 20;
+            lst.DrawItem += new DrawItemEventHandler(myListBox_DrawItem);
+
+            lst.Dock = DockStyle.Left;
+            lst.Width = 140;
+            this.Controls.Add(lst);
         }
 
         private void myListBox_DrawItem(object sender, System.Windows.Forms.DrawItemEventArgs e) {
@@ -93,29 +104,37 @@ namespace CalcProject {
         /// </summary>
         ///
         #region Sezione finestra di inserimento
+        private TextBox getMiniTextBox(string name) { return this.Controls["insertingWindow"].Controls[name] as TextBox; }
+        private ComboBox getMiniCb(string name) { return this.Controls["insertingWindow"].Controls[name] as ComboBox; }
         private void showInsertingWindow() {
+            TransPanel background = new TransPanel(this.Width,
+                                                   this.Height,
+                                                   Color.FromArgb(200, 192, 192, 192) //Argento con trasparenza 200 (max 255 = opaco)
+                                                   );
+            background.Size = this.Size;
+            background.Name = "background";
+            background.Click += closeInsertingWindow;
+            background.Location = new Point(0, 0);
+            background.BackColor = Color.FromArgb(200, 192, 192, 192);
+            this.Controls.Add(background); //Per far sì che il controllo sia presente
+
+
             //Sezione per la creazione del pannello "insertingWindow".
             Panel insertingWindow = new Panel(); //Oggetto, che per comodità si chiamerà come il controllo
             insertingWindow.BorderStyle = BorderStyle.FixedSingle; //Border del pannello
             //Larga 2/3 la form
             //Alta 3/4 la form
             insertingWindow.Size = new Size(this.Size.Width * 2 / 3, this.Size.Height * 3 / 4);
-            insertingWindow.Location = new Point(this.Size.Width / 5, -1); //-1 per non mostrare il bordo superiore
+            insertingWindow.Location = new Point(this.Size.Width / 5, -insertingWindow.Height); //-1 per non mostrare il bordo superiore
             insertingWindow.Name = "insertingWindow"; //Nome con cui verrà visualizzato il controllo
+            createInsertingControls(insertingWindow); //Solo ed esclusivamente per ordine del cordice
             this.Controls.Add(insertingWindow); //Per far sì che il controllo sia presente
-
+            for (int i = 0; i < this.Size.Height * 3 / 4 - 1; i+=4) {
+                insertingWindow.Location = new Point(insertingWindow.Location.X, i - insertingWindow.Height);
+            }
+            
             //Sezione per la creazione del pannello "background"
             //Oggetto, che per comodità si chiamerà come il controllo
-            TransPanel background = new TransPanel(this.Width,
-                                                   this.Height,
-                                                   Color.FromArgb(200, 192, 192, 192) //Argento con trasparenza 200 (max 255 = opaco)
-                                                   );
-            background.Name = "background";
-            background.Click += closeInsertingWindow;
-            createInsertingControls(insertingWindow); //Solo ed esclusivamente per ordine del cordice
-
-
-            this.Controls.Add(background); //Per far sì che il controllo sia presente
             this.ActiveControl = insertingWindow; //Per rendere il tutto piacevole alla vista
 
             background.BringToFront(); //Mette in primo piano il background
@@ -236,21 +255,42 @@ namespace CalcProject {
         }
         void bAnalize_Click(object sender, EventArgs e) {
             //Ancora da commentare dato che il metodo può essere soggetto a modifiche
+            /* Controlli all'interno della miniForm
+             * exerciseName
+             * cbMinMax
+             * exerciseZ
+             * exerciseFunctions
+             * bClear
+             * bAnalize
+             * bClose
+            */
+            
+            //Controlla i coefficienti nella Z
 
-            //Debug staff
-            string[] s = new string[] { "3x1-3x2-4x3<=360", "2x1+3x2-4x3<=100" };
-            string tmp = validNumbers(txtZ.Text); //<--- ricorda questo 
+            //Controlla i coefficienti nelle funzioni
+            TextBox exerciseFunctions = getMiniTextBox("exerciseFunctions");
+            for (int i = 0; i < exerciseFunctions.Lines.Length; i++) {
+                exerciseFunctions.Lines[i] = validNumbers(exerciseFunctions.Lines[i]);
+            }
 
             string errore;
-            table = new cTable("Patata", tmp, s, out errore);
+            exerciseFunctions.Lines = exerciseFunctions.Lines.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //Elimina le linee vuote
+            table = new cTable(
+                getMiniTextBox("exerciseName").Text,            //Nome dell'esercizio
+                validNumbers(getMiniTextBox("exerciseZ").Text), //Z dell'esercizio
+                exerciseFunctions.Lines,                        //Funzioni dell'esercizio
+                out errore                                      //Eventuali errori
+            );
             if (errore != null) { MessageBox.Show(errore); return; }
             Tables.Add(table);
-            //--------------
+
+            //Se non c'è posiziona la Listbox
+            if (!placed) placeListBox();
             
 
-            rExpressions.Visible = label1.Visible = button1.Visible = txtZ.Visible = false;
+            //rExpressions.Visible = label1.Visible = button1.Visible = txtZ.Visible = false;
 
-
+            //Crea la tabella
             DataGridView dg = createDataGrid(table);
             writeHeaders(table, dg);
             writeTableNumbers(table, dg);
@@ -412,8 +452,11 @@ namespace CalcProject {
                 }
             }
             for (int i = 0; i < dg.Columns.Count; i++) { dg.Columns[i].Width = 50; }
-            dg.Location = new Point(rExpressions.Location.X - 5, rExpressions.Location.Y);
-            dg.Size = new Size(rExpressions.Size.Width, rExpressions.Size.Height);
+
+            Control relativePosition = this.Controls["lstExercises"];
+            Control relativeSize = getMiniTextBox("exerciseFunctions");
+            dg.Location = new Point(relativePosition.Location.X + relativePosition.Width + 50, relativePosition.Height / 10);
+            dg.Size = new Size(relativeSize.Width + 80, relativeSize.Height + 80);
             dg.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left;
             dg.Columns[0].HeaderText = "Cb";
             dg.Columns[1].HeaderText = /* All your */"Base" /* are belong to us */;
@@ -561,15 +604,15 @@ namespace CalcProject {
         private void button1_Click(object sender, EventArgs e) {
             //Debug staff
             string[] s = new string[] { "3x1-3x2-4x3<=360", "2x1+3x2-4x3<=100" };
-            string tmp = validNumbers(txtZ.Text); //<--- ricorda questo 
-
+            //string tmp = validNumbers(txtZ.Text); //<--- ricorda questo 
+            string tmp = "3x1+3x2+4x3";
             string errore;
             table = new cTable("Patata", tmp, s, out errore);
             if (errore != null) { MessageBox.Show(errore); return; }
             Tables.Add(table);
             //--------------
 
-            rExpressions.Visible = label1.Visible = button1.Visible = txtZ.Visible = false;
+            //rExpressions.Visible = label1.Visible = button1.Visible = txtZ.Visible = false;
 
 
             DataGridView dg = createDataGrid(table);
@@ -616,29 +659,52 @@ namespace CalcProject {
 
             #endregion
 
-            rExpressions.Dispose();
-            label1.Dispose();
-            txtZ.Dispose();
-            button1.Dispose();
+            //rExpressions.Dispose();
+            //label1.Dispose();
+            //txtZ.Dispose();
+            //button1.Dispose();
 
 
         }
 
 
         private void txtZ_Enter(object sender, EventArgs e) {
-            txtZ.Text = "";
+            //txtZ.Text = "";
         }
         private void txtZ_Leave(object sender, EventArgs e) {
-            if (txtZ.Text.Trim() == "") { txtZ.Text = "Inserire la funzione Z"; return; }
-            button1.Enabled = true;
+            //if (txtZ.Text.Trim() == "") { txtZ.Text = "Inserire la funzione Z"; return; }
+            //button1.Enabled = true;
             //Da aggiungere la gestione cazzate
         }
 
         //Questo si chiamerà in un altro modo
         private void button2_Click(object sender, EventArgs e) {
             showInsertingWindow();
+            label1.Dispose();
+            button2.Dispose();
+            //Debug staff
+            string[] dbgF = new string[] { "3x1-3x2-4x3<=360", "2x1+3x2-4x3<=100" };
+            string dbgZ = "3x1+3x2+4x3";
+            //--------------------//
+            TextBox exerciseFunctions = getMiniTextBox("exerciseFunctions");
+            getMiniTextBox("exerciseZ").Text = dbgZ;
+            this.ActiveControl = exerciseFunctions;
+            for (int i = 0; i < dbgF.Length; i++) {
+                exerciseFunctions.Text += dbgF[i] + Environment.NewLine;
+            }
         }
         #endregion
+
+        private void mainForm_Load(object sender, EventArgs e) {
+            //System.Drawing.Text.PrivateFontCollection pfc = new System.Drawing.Text.PrivateFontCollection();
+            //pfc.AddFontFile("");
+        }
+
+        private void nuovoSistemaToolStripMenuItem_Click(object sender, EventArgs e) {
+            showInsertingWindow();
+        }
+
+        
 
 
 
