@@ -11,7 +11,7 @@ using System.IO;
 namespace CalcProject {
     class cTable {
 
-        private bool containsNumbers(string t) {
+        bool containsNumbers(string t) {
             for (int i = 0; i < t.Length; i++) {
                 if (t[i] >= '0' && t[i] <= '9') return true;
             }
@@ -20,15 +20,19 @@ namespace CalcProject {
         /// <summary>
         /// Se ci sono solo X ritorna true
         /// </summary>
-        private bool onlyX(string t) {
+        bool onlyX(string t) {
+            int counter = 0;
             for (int i = 0; i < t.Length; i++) {
                 bool isNumber = t[i] >= '0' && t[i] <= '9' || t[i] == '-' || t[i] == '+' || t[i] == '/';
-                if (!isNumber) if (t[i] != 'x') return false;
+                if (!isNumber) { 
+                    if (t[i] != 'x') return false; 
+                    else counter += 1; 
+                }
             }
-            return true;
+            return counter > 0;
         }
 
-        private bool consecutiveNumbers(string t) {
+        bool consecutiveNumbers(string t) {
             List<int> tmp = new List<int>();
             for (int i = 0; i < t.Length; i++) {
                 if (t[i] == 'x') tmp.Add(Convert.ToInt32(t[i + 1]) - 48);
@@ -154,10 +158,11 @@ namespace CalcProject {
             error = null;
             tIndex = 0;
 
-
+            //Manipolazione delle variabili
+            //per correggere eventuali baggianate che fa l'utonto
             Z = Z.Trim();
             sFunzioni = sFunzioni.Select(x => x.Trim()).ToArray(); //Trimma tutto
-            
+            sFunzioni = sFunzioni.Where(x => !string.IsNullOrEmpty(x)).ToArray();           
 
             //Questi if per gestire eventuali cavolate nell'inserimento dei dati
             #region Gestione errore
@@ -186,6 +191,7 @@ namespace CalcProject {
 
             //sFunzioni[0] = 3x1-3x2-4x3
             //sVars[0] = {3x1, -3x2, -4x3}
+            
             for (int i = 0; i < sFunzioni.Length; i++) {
                 //http://regex101.com/
 

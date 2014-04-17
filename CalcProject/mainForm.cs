@@ -16,6 +16,9 @@ namespace CalcProject {
         //Per ora si avranno summary delle regions
 
         bool placed = false;
+        bool existsControl(string name) {
+            return this.Controls.Find(name, true).Length > 0;
+        }
 
         public mainForm() {
             InitializeComponent();
@@ -48,8 +51,25 @@ namespace CalcProject {
 
             lst.Dock = DockStyle.Left;
             lst.Width = 140;
+            lst.SelectedIndexChanged += lst_SelectedIndexChanged;
             this.Controls.Add(lst);
         }
+
+        string oldSelected = "";
+        bool throughCode = false;
+        void changeIndex(int index) { (this.Controls["lstExercises"] as ListBox).SelectedIndex = index; throughCode = true; }
+        void lst_SelectedIndexChanged(object sender, EventArgs e) {
+            if (throughCode) { throughCode = false; return; }
+            ListBox lst = sender as ListBox;
+            int index = lst.SelectedIndex;
+            if (oldSelected != Tables[index].exName) {
+                if (existsControl("dg")) this.Controls["dg"].Dispose();
+                writeDG(Tables[index]);
+
+                oldSelected = Tables[index].exName;
+            }
+        }
+
 
         private void myListBox_DrawItem(object sender, System.Windows.Forms.DrawItemEventArgs e) {
             //Gestione della grafica della listbox
@@ -77,7 +97,9 @@ namespace CalcProject {
             //http://regex101.com/r/aM4wZ6/#debugger
             string[] tmp = Regex.Split(t, "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
             tmp = tmp.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
-            for (int i = 0; i < tmp.Length; i++) {
+
+            int ender = t.Contains('=') ? tmp.Length - 1 : tmp.Length; //<-- Per non considerare la parte destra dell'espressione
+            for (int i = 0; i < ender; i++) {
                 //Se il coeffieciente non è esplicito (quindi es: x1)
                 //va ad aggiungerlo
                 int n = tmp[i][0] == '+' || tmp[i][0] == '-' ? 1 : 0;
@@ -264,17 +286,24 @@ namespace CalcProject {
              * bAnalize
              * bClose
             */
-            
+
             //Controlla i coefficienti nella Z
 
             //Controlla i coefficienti nelle funzioni
             TextBox exerciseFunctions = getMiniTextBox("exerciseFunctions");
-            for (int i = 0; i < exerciseFunctions.Lines.Length; i++) {
-                exerciseFunctions.Lines[i] = validNumbers(exerciseFunctions.Lines[i]);
+            exerciseFunctions.Lines = exerciseFunctions.Lines.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //Elimina le linee vuote
+
+            string[] functions = exerciseFunctions.Lines;
+            exerciseFunctions.Clear();
+            for (int i = 0; i < functions.Length; i++) {
+                functions[i] = validNumbers(functions[i]);
+                exerciseFunctions.Text += functions[i] + Environment.NewLine;
             }
+            
+
 
             string errore;
-            exerciseFunctions.Lines = exerciseFunctions.Lines.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //Elimina le linee vuote
+
             table = new cTable(
                 getMiniTextBox("exerciseName").Text,            //Nome dell'esercizio
                 validNumbers(getMiniTextBox("exerciseZ").Text), //Z dell'esercizio
@@ -285,38 +314,40 @@ namespace CalcProject {
             Tables.Add(table);
 
             //Se non c'è posiziona la Listbox
-            if (!placed) placeListBox();
-            
+            if (!placed) {
+                placeListBox();
+                oldSelected = Tables[0].exName;
+            }
+
+            (this.Controls["lstExercises"] as ListBox).SelectedIndex = Tables.Count - 1;
+
 
             //rExpressions.Visible = label1.Visible = button1.Visible = txtZ.Visible = false;
 
             //Crea la tabella
-            DataGridView dg = createDataGrid(table);
-            writeHeaders(table, dg);
-            writeTableNumbers(table, dg);
-            writeB(table, dg);
-            writeCb(table, dg);
-            writeSab(dg);
+            DataGridView dg;
 
 
+            if (existsControl("dg")) this.Controls["dg"].Dispose();
+            dg = writeDG(table);
 
+            if (!existsControl("bNext")) {
+                Button bNext, bPrev;
+                bNext = new Button();
+                bNext.Name = "bNext";
+                bNext.Text = ">";
+                bNext.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) + 5, dg.Location.Y + dg.Height + 5);
+                this.Controls.Add(bNext);
+                bNext.Click += bNext_Click;
 
-            Button bNext, bPrev;
-            bNext = new Button();
-            bNext.Name = "bNext";
-            bNext.Text = ">";
-            bNext.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) + 5, dg.Location.Y + dg.Height + 5);
-            this.Controls.Add(bNext);
-            bNext.Click += bNext_Click;
-
-            bPrev = new Button();
-            bPrev.Name = "bPrev";
-            bPrev.Text = "<";
-            bPrev.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) - bNext.Width, dg.Location.Y + dg.Height + 5);
-            bPrev.Enabled = false;
-            this.Controls.Add(bPrev);
-            bPrev.Click += bPrev_Click;
-
+                bPrev = new Button();
+                bPrev.Name = "bPrev";
+                bPrev.Text = "<";
+                bPrev.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) - bNext.Width, dg.Location.Y + dg.Height + 5);
+                bPrev.Enabled = false;
+                this.Controls.Add(bPrev);
+                bPrev.Click += bPrev_Click;
+            }
             this.Controls["insertingWindow"].Dispose();
             this.Controls["background"].Dispose();
             this.ActiveControl = dg;
@@ -358,8 +389,9 @@ namespace CalcProject {
 
             string[] exiting = exitingVar(dg, entering);
             calculateNewTable(dg, entering, exiting[0], exiting[1]);
+            writeCb(table, dg);
             writeSab(dg);
-            writeCb(table, dg);            
+            
             this.Controls["dg"].Refresh();
         }
         #endregion
@@ -375,7 +407,7 @@ namespace CalcProject {
         ///     
         /// </summary>
         /// 
-        #region Sezione request object
+        #region Sezione metodi di richiesta
         #region GetNumber
         double getNumber(string t) {
             t = t.Trim();
@@ -438,14 +470,26 @@ namespace CalcProject {
         ///     -editBaseVar:       Sostituzione della variabile di base uscente con quella entrante
         /// </summary>
         ///
+        ///
         #region Sezione calcoli tabelle e simplessi
+        private DataGridView writeDG(cTable table) {
+            this.table = table;
+            DataGridView dg = createDataGrid(table);
+            writeHeaders(table, dg);
+            writeTableNumbers(table, dg);
+            writeB(table, dg);
+            writeCb(table, dg);
+            writeSab(dg);
+            return dg;
+        } 
+
         private DataGridView createDataGrid(cTable table) {
             DataGridView dg = new DataGridView();
             dg.Name = "dg";
             //CB, Base, Var decisionali + Var scarto, B
             dg.ColumnCount = 3 + table.nVariabiliScarto;
             dg.RowCount = table.Functions.Length + 2;
-            //i = 2; le prime due non le conta, Columns.Count - 1; l'ultima non la conta
+            //le prime due non le conta, Columns.Count - 1; l'ultima non la conta
             for (int i = 2; i < dg.Columns.Count; i++) {
                 for (int j = 0; j < dg.Rows.Count; j++) {
                     dg.Rows[j].Cells[i].Value = "0";
@@ -454,7 +498,7 @@ namespace CalcProject {
             for (int i = 0; i < dg.Columns.Count; i++) { dg.Columns[i].Width = 50; }
 
             Control relativePosition = this.Controls["lstExercises"];
-            Control relativeSize = getMiniTextBox("exerciseFunctions");
+            Size relativeSize = new Size(375, 100); //La grandezza della textbox delle funzioni
             dg.Location = new Point(relativePosition.Location.X + relativePosition.Width + 50, relativePosition.Height / 10);
             dg.Size = new Size(relativeSize.Width + 80, relativeSize.Height + 80);
             dg.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left;
@@ -499,14 +543,14 @@ namespace CalcProject {
         }
         private static void writeB(cTable t, DataGridView dg) {
             for (int r = 0; r < t.Vars.Count; r++) {
-                dg[dg.Columns.Count - 1, r].Value = t.Vars[r][3];
+                dg[dg.Columns.Count - 1, r].Value = t.Vars[r][t.Vars[r].Length - 1];
             }
         }
         private void writeCb(cTable t, DataGridView dg) {
             for (int r = 0; r < t.Functions.Length; r++) {
                 string str = dg[1, r].Value.ToString();
                 int column = getColumnByHeader(dg, str);
-                int row = t.Functions.Length + 1;
+                int row = t.Functions.Length;
                 dg[0, r].Value = dg[column, row].Value;
             }
         }
