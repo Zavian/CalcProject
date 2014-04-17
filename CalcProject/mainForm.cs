@@ -15,29 +15,23 @@ namespace CalcProject {
         //soggetto a modifiche (e i summary sono fastidiosi)
         //Per ora si avranno summary delle regions
 
-        bool placed = false;
+        //Metodo creato per comodità
+        /// <summary>
+        /// Restituisce se esiste o meno il controllo richiesto.
+        /// </summary>
+        /// <param name="name">Nome del controllo.</param>
         bool existsControl(string name) {
             return this.Controls.Find(name, true).Length > 0;
         }
 
+        
+
         public mainForm() {
             InitializeComponent();
-
-
-            
-
-            ////button1.Enabled = false;
-
-            
-
-            //Debug stuff
-            //txtZ.Text = "3x1+3x2+4x3";
-            //button1_Click(null, null); //<--- ROBA DA DEBUG IMPORTANTE
-            //---------------
         }
 
+        //Posiziona la listbox all'interno della form
         private void placeListBox() {
-            placed = true;
             stripMenu.Visible = true;
             ListBox lst = new ListBox();
             lst.Name = "lstExercises";
@@ -55,10 +49,17 @@ namespace CalcProject {
             this.Controls.Add(lst);
         }
 
+        //Variabile necessaria per la gestione del
+        //change dell'index nella listbox
         string oldSelected = "";
+        //Booleana necessaria per far capire al metodo
+        //del change index che non deve riscrivere la tabella
         bool throughCode = false;
+
+        //Metodo creato per comodità e ordine del codice
         void changeIndex(int index) { (this.Controls["lstExercises"] as ListBox).SelectedIndex = index; throughCode = true; }
         void lst_SelectedIndexChanged(object sender, EventArgs e) {
+            //Semplicemente qui esso riscrive il datagrid nel caso si abbia cambiato tabella
             if (throughCode) { throughCode = false; return; }
             ListBox lst = sender as ListBox;
             int index = lst.SelectedIndex;
@@ -314,12 +315,12 @@ namespace CalcProject {
             Tables.Add(table);
 
             //Se non c'è posiziona la Listbox
-            if (!placed) {
+            if (existsControl("lstExercises")) {
                 placeListBox();
                 oldSelected = Tables[0].exName;
             }
 
-            (this.Controls["lstExercises"] as ListBox).SelectedIndex = Tables.Count - 1;
+            changeIndex(Tables.Count - 1);
 
 
             //rExpressions.Visible = label1.Visible = button1.Visible = txtZ.Visible = false;
