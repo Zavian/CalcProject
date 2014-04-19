@@ -57,15 +57,15 @@ namespace CalcProject {
         /// <summary>
         /// Ricevi l'array degli elementi della Z.
         /// </summary>
-        public int[] ZArray { get { 
+        public double[] ZArray { get { 
                 //Da togliere le X
-            string[] elemZ = Regex.Split(sFunzioneZ, "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
+            string[] elemZ = Regex.Split(sFunzioneZ, @"([-|\+]{0,1}\d*\,?\d{0,}x\d*\d{1,})");
                 elemZ = elemZ.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
                 for (int i = 0; i < elemZ.Length; i++) {
                     elemZ[i] = elemZ[i].Remove(elemZ[i].LastIndexOf('x'));
                 }
-                int[] returner = new int[elemZ.Length];
-                for (int i = 0; i < elemZ.Length; i++) returner[i] = Convert.ToInt32(elemZ[i]);
+                double[] returner = new double[elemZ.Length];
+                for (int i = 0; i < elemZ.Length; i++) returner[i] = Convert.ToDouble(elemZ[i]);
                 return returner;
             } 
         }
@@ -97,8 +97,9 @@ namespace CalcProject {
         /// </summary>
         public int tableIndex { get { return tIndex; } set { tIndex = value; } }
         
-         string nomeEsercizio = "";
-         string problema = ""; //min|max
+
+        string nomeEsercizio = "";
+        string problema = ""; //min|max
         
         string sFunzioneZ;
         string[] sFunzioni;
@@ -162,10 +163,12 @@ namespace CalcProject {
             //per correggere eventuali baggianate che fa l'utonto
             Z = Z.Trim();
             sFunzioni = sFunzioni.Select(x => x.Trim()).ToArray(); //Trimma tutto
-            sFunzioni = sFunzioni.Where(x => !string.IsNullOrEmpty(x)).ToArray();           
+
+            sFunzioni = sFunzioni.Where(x => !string.IsNullOrEmpty(x)).ToArray();
 
             //Questi if per gestire eventuali cavolate nell'inserimento dei dati
             #region Gestione errore
+            /*
             string tut = "\nFare riferimento al tutorial";
             if (!containsNumbers(Z) || !onlyX(Z)) { error = ("Errore nell'inserimento della Z" + tut); return; }
             if (!consecutiveNumbers(Z)) { error = ("Errore nell'ordine delle variabili della Z" + tut); return; }
@@ -177,6 +180,7 @@ namespace CalcProject {
             //    if (!consecutiveNumbers(sFunzioni[i]))
             //        { error = ("Errore nell'ordine delle variabili delle funzioni" + tut); return; }
             //}
+             * */
             #endregion
 
             this.nomeEsercizio = exName;
@@ -184,7 +188,7 @@ namespace CalcProject {
             this.sFunzioneZ = Z;
             //Lettura della Z
             //http://regex101.com/r/aM4wZ6/#debugger
-            string[] elemZ = Regex.Split(sFunzioneZ, "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
+            string[] elemZ = Regex.Split(sFunzioneZ, @"([-|\+]{0,1}\d*\,?\d{0,}x\d*\d{1,})");
             elemZ = elemZ.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
             iBMax = elemZ.Length;
 
@@ -196,7 +200,7 @@ namespace CalcProject {
                 //http://regex101.com/
 
                 //Selezione dei termini singoli della funzione
-                string[] tmp = Regex.Split(sFunzioni[i], "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
+                string[] tmp = Regex.Split(sFunzioni[i], @"([-|\+]{0,1}\d*\,?\d{0,}x\d*\d{1,})");
                 tmp = tmp.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
                 tmp[tmp.Length - 1] = tmp[tmp.Length - 1].Replace("=", "");
                 tmp[tmp.Length - 1] = tmp[tmp.Length - 1].Replace("<", "");

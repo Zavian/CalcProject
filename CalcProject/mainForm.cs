@@ -24,7 +24,11 @@ namespace CalcProject {
             return this.Controls.Find(name, true).Length > 0;
         }
 
-        
+        public double TruncateDecimal(double value, int precision) {
+            double step = (double)Math.Pow(10, precision);
+            int tmp = (int)Math.Truncate(step * value);
+            return tmp / step;
+        }
 
         public mainForm() {
             InitializeComponent();
@@ -66,7 +70,7 @@ namespace CalcProject {
             if (oldSelected != Tables[index].exName) {
                 if (existsControl("dg")) this.Controls["dg"].Dispose();
                 writeDG(Tables[index]);
-
+                this.Controls["bNext"].Enabled = true;
                 oldSelected = Tables[index].exName;
             }
         }
@@ -96,7 +100,7 @@ namespace CalcProject {
         #region Metodi di controllo
         private string validNumbers(string t) /*Questo metodo serve per gestire il fatto che non si metta un numero davanti alla X */ {
             //http://regex101.com/r/aM4wZ6/#debugger
-            string[] tmp = Regex.Split(t, "([-|\\+]{0,1}\\d{0,}x\\d{1,})");
+            string[] tmp = Regex.Split(t, @"([-|\+]{0,1}\d*\,?\d{0,}x\d*\d{1,})");
             tmp = tmp.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
 
             int ender = t.Contains('=') ? tmp.Length - 1 : tmp.Length; //<-- Per non considerare la parte destra dell'espressione
@@ -315,11 +319,10 @@ namespace CalcProject {
             Tables.Add(table);
 
             //Se non c'è posiziona la Listbox
-            if (existsControl("lstExercises")) {
+            if (!existsControl("lstExercises")) {
                 placeListBox();
                 oldSelected = Tables[0].exName;
             }
-
             changeIndex(Tables.Count - 1);
 
 
@@ -390,6 +393,7 @@ namespace CalcProject {
 
             string[] exiting = exitingVar(dg, entering);
             calculateNewTable(dg, entering, exiting[0], exiting[1]);
+            calculateGauss(dg, Convert.ToDouble(exiting[1]), Convert.ToInt32(exiting[2]), Convert.ToInt32(exiting[3]));
             writeCb(table, dg);
             writeSab(dg);
             
@@ -411,14 +415,13 @@ namespace CalcProject {
         #region Sezione metodi di richiesta
         #region GetNumber
         double getNumber(string t) {
+            string tmp = "";
             t = t.Trim();
-            return itIsDivided(t) ? soDivideIt(t) : Convert.ToDouble(t);
+            double returner = itIsDivided(t) ? soDivideIt(t) : Convert.ToDouble(t);
+            return TruncateDecimal(returner, 2);
         }
         bool itIsDivided(string t) {
-            for (int i = 0; i < t.Length; i++) {
-                if (t[i] == '/') return true;
-            }
-            return false;
+            return t.Contains('\\');
         }
         private static double soDivideIt(string t) {
             double p;
@@ -445,6 +448,21 @@ namespace CalcProject {
             //[0] -> Cj, il resto la colonna.
             return ris;
         }
+
+        private void writeRow(DataGridView dg, double[] newRow, int rowIndex) {
+            for (int i = 0; i < newRow.Length; i++) {
+                dg[i + 2, rowIndex].Value = newRow[i];
+            }
+        }
+        private double[] getRow(DataGridView dg, int rowIndex) {
+            double[] ris;
+            ris = new double[table.nVariabiliScarto];
+            for (int i = 0; i < table.nVariabiliScarto; i++) {
+                ris[i] = getNumber(dg[i + 2, rowIndex].Value.ToString());
+            }
+            return ris;
+        }
+
         private int getColumnByHeader(DataGridView dg, string s) {
             for (int i = 0; i < dg.Columns.Count; i++) {
                 if (dg.Columns[i].HeaderText == s) return i;
@@ -567,6 +585,51 @@ namespace CalcProject {
             }
         }
 
+        private void calculateGauss(DataGridView dg, double pivot, int colonnaPivot, int rigaPivot) {
+            for (int r = 0; r < dg.RowCount - 2; r++) {
+                double coefficienteAnnulamento = -Convert.ToDouble(dg[colonnaPivot, r].Value);
+                if (r != rigaPivot) {
+                    dg[colonnaPivot, r].Value = 0;
+
+                    for (int c = 0; c < dg.ColumnCount - 2; c++) {
+                        if (c + 2 != colonnaPivot) {
+                            dg[c + 2, r].Value =
+                                (
+                                    Convert.ToDouble(dg[c + 2, rigaPivot].Value) *
+                                    coefficienteAnnulamento
+                                )
+                                + Convert.ToDouble(dg[c + 2, r].Value);
+                        }
+                    }
+                }
+            }
+
+            //double[] column = getColumn(dg, colonnaPivot);
+            //for (int i = 1; i < column.Length - 1; i++) { //1 -> per non contare il primo elemento che è la cj
+            //    if (i - 1 != rigaPivot) {
+            //        double coefficienteAnnullamento = -column[i];
+            //        column[i] = 0;
+            //        for (int j = 0; j < dg.RowCount - 2; j++) {
+            //            double[] row = getRow(dg, j);
+            //            for (int k = 0; k < row.Length; k++) {
+            //                row[k] += getNumber(dg[k + 2, rigaPivot].Value.ToString()) * coefficienteAnnullamento;
+            //            }
+            //            writeRow(dg, row, j);
+            //        }
+            //    }
+            //}
+            
+            //for(int i = 0; i < arrayScelta.Length; i++) {
+            //    if (isLast) {
+            //        arrayScelta[i] = table.Functions.Length - 2 - i;
+            //    }
+            //    else {
+            //        arrayScelta[i] = 
+
+            //    }
+            //}
+        }
+
         private int isBaseVar(DataGridView dg, string s) {
             //Questo metodo prende le stringhe nella prima colonna
             //e le compara con la stringa richiesta
@@ -615,16 +678,17 @@ namespace CalcProject {
             double[] myArray = new double[table.nVariabiliScarto];
             for (int i = 0; i < myArray.Length; i++) { myArray[i] = double.MaxValue; }
 
-            getColumn(dg, dg.ColumnCount - 1);
             int columnIndex = getColumnByHeader(dg, enteringVar);
             for (int i = 0; i < table.Functions.Length; i++) {
-                myArray[i] = getNumber(dg[columnIndex, i].Value.ToString()) / getColumn(dg, dg.ColumnCount - 1)[i];
+                double[] colonna = getColumn(dg, dg.ColumnCount - 1);
+                myArray[i] = getColumn(dg, dg.ColumnCount - 1)[i] / getNumber(dg[columnIndex, i].Value.ToString());
+                bool banana = true;
             }
             double minValue = myArray.Min();
             int minIndex = myArray.ToList().IndexOf(minValue);
             double pivot = getNumber(dg[columnIndex, minIndex].Value.ToString());
             MessageBox.Show("La variabile uscente è: " + dg[1, minIndex].Value.ToString());
-            string[] returner = { dg[1, minIndex].Value.ToString(), pivot.ToString() };
+            string[] returner = { dg[1, minIndex].Value.ToString(), pivot.ToString(), columnIndex.ToString(), minIndex.ToString() };
             return returner;
         }
 
@@ -644,92 +708,14 @@ namespace CalcProject {
         }
         #endregion
 
-        #region Event Handlers Form
-        //Questo è temporaneo
-        private void button1_Click(object sender, EventArgs e) {
-            //Debug staff
-            string[] s = new string[] { "3x1-3x2-4x3<=360", "2x1+3x2-4x3<=100" };
-            //string tmp = validNumbers(txtZ.Text); //<--- ricorda questo 
-            string tmp = "3x1+3x2+4x3";
-            string errore;
-            table = new cTable("Patata", tmp, s, out errore);
-            if (errore != null) { MessageBox.Show(errore); return; }
-            Tables.Add(table);
-            //--------------
 
-            //rExpressions.Visible = label1.Visible = button1.Visible = txtZ.Visible = false;
-
-
-            DataGridView dg = createDataGrid(table);
-            writeHeaders(table, dg);
-            writeTableNumbers(table, dg);
-            writeB(table, dg);
-            writeSab(dg);
-            writeCb(table, dg);
-            
-
-
-
-
-            Button bNext, bPrev;
-            bNext = new Button();
-            bNext.Name = "bNext";
-            bNext.Text = ">";
-            bNext.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) + 5, dg.Location.Y + dg.Height + 5);
-            this.Controls.Add(bNext);
-            bNext.Click += bNext_Click;
-
-            bPrev = new Button();
-            bPrev.Name = "bPrev";
-            bPrev.Text = "<";
-            bPrev.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) - bNext.Width, dg.Location.Y + dg.Height + 5);
-            bPrev.Enabled = false;
-            this.Controls.Add(bPrev);
-            bPrev.Click += bPrev_Click;
-
-
-            #region #DEPRECATED
-            //for (int i = 0; i < t.Numbers.Count; i++) {
-            //    string tmp = "";
-            //    for (int j = 0; j < t.Numbers[i].Length; j++) {
-            //        tmp += t.Numbers[i][j] + " ";
-            //    }
-            //    rExpressions.Text += tmp;
-            //}
-            //rExpressions.Text += "\n";
-
-            //for (int i = 0; i < t.Functions.Length; i++) {
-            //    rExpressions.Text += t.Functions[i];
-            //}
-
-            #endregion
-
-            //rExpressions.Dispose();
-            //label1.Dispose();
-            //txtZ.Dispose();
-            //button1.Dispose();
-
-
-        }
-
-
-        private void txtZ_Enter(object sender, EventArgs e) {
-            //txtZ.Text = "";
-        }
-        private void txtZ_Leave(object sender, EventArgs e) {
-            //if (txtZ.Text.Trim() == "") { txtZ.Text = "Inserire la funzione Z"; return; }
-            //button1.Enabled = true;
-            //Da aggiungere la gestione cazzate
-        }
-
-        //Questo si chiamerà in un altro modo
         private void button2_Click(object sender, EventArgs e) {
             showInsertingWindow();
             label1.Dispose();
             button2.Dispose();
             //Debug staff
-            string[] dbgF = new string[] { "3x1-3x2-4x3<=360", "2x1+3x2-4x3<=100" };
-            string dbgZ = "3x1+3x2+4x3";
+            string[] dbgF = new string[] { "2x1+2x2<=160", "x1+2x2<=120", "4x1+2x2<=280" };
+            string dbgZ = "x1+"+(3/2).ToString()+"x2";
             //--------------------//
             TextBox exerciseFunctions = getMiniTextBox("exerciseFunctions");
             getMiniTextBox("exerciseZ").Text = dbgZ;
@@ -738,7 +724,6 @@ namespace CalcProject {
                 exerciseFunctions.Text += dbgF[i] + Environment.NewLine;
             }
         }
-        #endregion
 
         private void mainForm_Load(object sender, EventArgs e) {
             //System.Drawing.Text.PrivateFontCollection pfc = new System.Drawing.Text.PrivateFontCollection();
