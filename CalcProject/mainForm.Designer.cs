@@ -70,7 +70,7 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(223, 175);
+            this.button2.Location = new System.Drawing.Point(218, 205);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(352, 23);
             this.button2.TabIndex = 9;
@@ -82,10 +82,10 @@
             // 
             this.label1.AutoSize = true;
             this.label1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.label1.Font = new System.Drawing.Font("Walkway Bold", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.Location = new System.Drawing.Point(248, 27);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(318, 136);
+            this.label1.Size = new System.Drawing.Size(322, 160);
             this.label1.TabIndex = 10;
             this.label1.Text = resources.GetString("label1.Text");
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
