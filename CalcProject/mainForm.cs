@@ -13,6 +13,15 @@ namespace CalcProject {
 
         double M;
 
+        double calcRis(DataGridView dg) {
+            int riga = table.Functions.Length; //qui sono alla riga cj
+            double ris = 0;
+            for (int i = 2; i < dg.ColumnCount - 1; i++) {
+                ris += getNumber(dg[i, riga].Value.ToString()) * getNumber(dg[i, riga + 1].Value.ToString());
+            }
+            return ris;
+        }
+
         //I summary verranno messi a codice completo, dato che può essere
         //soggetto a modifiche (e i summary sono fastidiosi)
         //Per ora si avranno summary delle regions
@@ -81,6 +90,10 @@ namespace CalcProject {
                 if (existsControl("dg")) this.Controls["dg"].Dispose();
                 writeDG(Tables[index]);
                 this.Controls["bNext"].Enabled = true;
+                this.Controls["bEnd"].Enabled = true;
+                this.Controls["labelUscente"].Text = "";
+                this.Controls["labelEntrante"].Text = "";
+                this.Controls["labelFine"].Text = ""; 
                 oldSelected = Tables[index].exName;
             }
         }
@@ -104,7 +117,6 @@ namespace CalcProject {
         }
 
         cTable table;
-        List<DataGridView> DGs = new List<DataGridView>();
         BindingList<cTable> Tables = new BindingList<cTable>();
 
         #region Metodi di controllo
@@ -141,6 +153,8 @@ namespace CalcProject {
         /// </summary>
         ///
         #region Sezione finestra di inserimento
+        private ComboBox getMiniCombo(string name) { return this.Controls["insertingWindow"].Controls[name] as ComboBox; }
+
         private TextBox getMiniTextBox(string name) { return this.Controls["insertingWindow"].Controls[name] as TextBox; }
         private ComboBox getMiniCb(string name) { return this.Controls["insertingWindow"].Controls[name] as ComboBox; }
         private void showInsertingWindow() {
@@ -329,6 +343,7 @@ namespace CalcProject {
                 getMiniTextBox("exerciseName").Text,            //Nome dell'esercizio
                 validNumbers(getMiniTextBox("exerciseZ").Text), //Z dell'esercizio
                 exerciseFunctions.Lines,                        //Funzioni dell'esercizio
+                getMiniCombo("cbMinMax").SelectedText == "Problema di Massimo" ? "max" : "min",
                 out errore                                      //Eventuali errori
             );
             if (errore != null) { MessageBox.Show(errore); return; }
@@ -337,9 +352,9 @@ namespace CalcProject {
             //Se non c'è posiziona la Listbox
             if (!existsControl("lstExercises")) {
                 placeListBox();
-                oldSelected = Tables[0].exName;
+                oldSelected = table.exName;
             }
-            changeIndex(Tables.Count - 1);
+            else changeIndex(Tables.Count - 1);
 
 
             //rExpressions.Visible = label1.Visible = button1.Visible = txtZ.Visible = false;
@@ -352,21 +367,7 @@ namespace CalcProject {
             dg = writeDG(table);
 
             if (!existsControl("bNext")) {
-                Button bNext, bPrev;
-                bNext = new Button();
-                bNext.Name = "bNext";
-                bNext.Text = ">";
-                bNext.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) + 5, dg.Location.Y + dg.Height + 5);
-                this.Controls.Add(bNext);
-                bNext.Click += bNext_Click;
-
-                bPrev = new Button();
-                bPrev.Name = "bPrev";
-                bPrev.Text = "<";
-                bPrev.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) - bNext.Width, dg.Location.Y + dg.Height + 5);
-                bPrev.Enabled = false;
-                this.Controls.Add(bPrev);
-                bPrev.Click += bPrev_Click;
+                createControlsUnderDG(dg);
             }
             this.Controls["insertingWindow"].Dispose();
             this.Controls["background"].Dispose();
@@ -399,13 +400,15 @@ namespace CalcProject {
             if (t.Text.Contains("Inserire")) t.Clear();
         }
 
-        void bPrev_Click(object sender, EventArgs e) {
-            throw new NotImplementedException();
-        }
+
         void bNext_Click(object sender, EventArgs e) {
             DataGridView dg = getDG();
             string entering = enteringVar(dg);
-            if (entering == "fine") { this.Controls["bNext"].Enabled = false; return; }
+            if (entering == "fine") { 
+                this.Controls["bNext"].Enabled = this.Controls["bEnd"].Enabled = false;
+                this.Controls["labelFine"].Text = "Il risultato finale è uguale a: " + calcRis(dg).ToString();
+                return; 
+            }
 
             string[] exiting = exitingVar(dg, entering);
             if (isThereM(dg, getColumnByHeader(dg, exiting[0])))
@@ -520,7 +523,13 @@ namespace CalcProject {
             writeCb(table, dg);
             writeSab(dg);
             return dg;
-        } 
+        }
+
+        private void writeDG(DataGridView DG) {
+            this.Controls.RemoveByKey("dg");
+            DataGridView dg = DG;
+            this.Controls.Add(dg);
+        }
 
         private DataGridView createDataGrid(cTable table) {
             DataGridView dg = new DataGridView();
@@ -727,7 +736,7 @@ namespace CalcProject {
                 double maxValue = myArray.Max();
                 int maxIndex = myArray.ToList().IndexOf(maxValue);
                 maxIndex += 1;
-                MessageBox.Show("La variabile entrante è: x" + maxIndex.ToString());
+                (this.Controls["labelEntrante"] as Label).Text = "La variabile entrante è: x" + maxIndex.ToString();
                 return "x" + maxIndex.ToString();
             }
             else { MessageBox.Show("Non è più possibile andare avanti."); return "fine"; }
@@ -747,7 +756,7 @@ namespace CalcProject {
 
             int minIndex = myArray.ToList().IndexOf(minValue);
             double pivot = getNumber(dg[columnIndex, minIndex].Value.ToString());
-            MessageBox.Show("La variabile uscente è: " + dg[1, minIndex].Value.ToString());
+            (this.Controls["labelUscente"] as Label).Text =  "La variabile uscente è: " + dg[1, minIndex].Value.ToString();
             string[] returner = { dg[1, minIndex].Value.ToString(), pivot.ToString(), columnIndex.ToString(), minIndex.ToString() };
             if (minValue < -table.MaxNumber * 900) {
                 returner = new string[5] { dg[1, minIndex].Value.ToString(), pivot.ToString(), columnIndex.ToString(), minIndex.ToString(), "delete" };
@@ -758,7 +767,7 @@ namespace CalcProject {
         }
 
         private void calculateNewTable(DataGridView dg, string enteringVar, string exitingVar, string pivot) {
-            DGs.Add(dg);
+            table.addDG(dg);
             int rowIndex = editBaseVar(dg, enteringVar, exitingVar);
             if (rowIndex == -1) return;
             for (int i = 0; i < dg.ColumnCount - 2; i++) {
@@ -820,7 +829,7 @@ namespace CalcProject {
                         placeListBox();
                         oldSelected = Tables[0].exName;
                     }
-                    changeIndex(Tables.Count - 1);
+                    else changeIndex(Tables.Count - 1);
 
 
                     //rExpressions.Visible = label1.Visible = button1.Visible = txtZ.Visible = false;
@@ -833,28 +842,90 @@ namespace CalcProject {
                     dg = writeDG(table);
 
                     if (!existsControl("bNext")) {
-                        Button bNext, bPrev;
-                        bNext = new Button();
-                        bNext.Name = "bNext";
-                        bNext.Text = ">";
-                        bNext.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) + 5, dg.Location.Y + dg.Height + 5);
-                        this.Controls.Add(bNext);
-                        bNext.Click += bNext_Click;
-
-                        bPrev = new Button();
-                        bPrev.Name = "bPrev";
-                        bPrev.Text = "<";
-                        bPrev.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) - bNext.Width, dg.Location.Y + dg.Height + 5);
-                        bPrev.Enabled = false;
-                        this.Controls.Add(bPrev);
-                        bPrev.Click += bPrev_Click;
+                        createControlsUnderDG(dg);
                     }
-                    this.Controls["insertingWindow"].Dispose();
-                    this.Controls["background"].Dispose();
+                    else { 
+                        this.Controls["bNext"].Enabled = true;
+                        this.Controls["bEnd"].Enabled = true;
+                        this.Controls["labelUscente"].Text = "";
+                        this.Controls["labelEntrante"].Text = "";
+                        this.Controls["labelFine"].Text = ""; 
+                    }
+
+                    if (existsControl("insertingWindow") && existsControl("background")) {
+                        this.Controls["insertingWindow"].Dispose();
+                        this.Controls["background"].Dispose();
+                    }
                     this.ActiveControl = dg;
 
                 }
             }
+        }
+
+        private void createControlsUnderDG(DataGridView dg) {
+            Button bNext, bEnd;
+            bNext = new Button();
+            bNext.Name = "bNext";
+            bNext.Text = ">";
+            bNext.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) + 80, dg.Location.Y + dg.Height + 5);
+            this.Controls.Add(bNext);
+            bNext.Click += bNext_Click;
+
+            bEnd = new Button();
+            bEnd.Name = "bEnd";
+            bEnd.Text = "Tenta di finire l'esercizio";
+            bEnd.Size = new Size(175, bEnd.Height);
+            bEnd.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) - bEnd.Width + 75, dg.Location.Y + dg.Height + 5);
+            bEnd.Enabled = true;
+            this.Controls.Add(bEnd);
+            bEnd.Click += bEnd_Click;
+
+            Label labelEntrante = new Label();
+            labelEntrante.AutoSize = true;
+            labelEntrante.Name = "labelEntrante";
+            labelEntrante.Text = "";
+            labelEntrante.Location = new Point(dg.Location.X, bNext.Location.Y + 50);
+            this.Controls.Add(labelEntrante);
+
+            Label labelUscente = new Label();
+            labelUscente.AutoSize = true;
+            labelUscente.Name = "labelUscente";
+            labelUscente.Text = "";
+            labelUscente.Location = new Point(labelEntrante.Location.X, labelEntrante.Location.Y + 20);
+            this.Controls.Add(labelUscente);
+
+            Label labelFine = new Label();
+            labelFine.AutoSize = true;
+            labelFine.Name = "labelFine";
+            labelFine.Text = "";
+            labelFine.Location = new Point(labelEntrante.Location.X, labelUscente.Location.Y + 20);
+            this.Controls.Add(labelFine);
+        }
+
+        void bEnd_Click(object sender, EventArgs e) {
+            string entering = "";
+            int index = 1;
+            while (entering != "fine" && index % 10 != 0) {
+                DataGridView dg = getDG();
+                entering = enteringVar(dg);
+                if (entering == "fine") { 
+                    this.Controls["bNext"].Enabled = this.Controls["bEnd"].Enabled = false;
+                    this.Controls["labelFine"].Text = "Il risultato finale è uguale a: " + calcRis(dg).ToString();
+                    return; 
+                }
+
+                string[] exiting = exitingVar(dg, entering);
+                if (isThereM(dg, getColumnByHeader(dg, exiting[0])))
+                    dg.Columns.RemoveAt(getColumnByHeader(dg, exiting[0]));
+                calculateNewTable(dg, entering, exiting[0], exiting[1]);
+                calculateGauss(dg, Convert.ToDouble(exiting[1]), Convert.ToInt32(exiting[2]), Convert.ToInt32(exiting[3]));
+                writeCb(table, dg);
+                writeSab(dg);
+
+                index++;
+                this.Controls["dg"].Refresh(); 
+            }
+            if (index % 10 == 0) MessageBox.Show("Mi sono fermato perché sto andando molto avanti...");
         }
 
         private void button3_Click(object sender, EventArgs e) {
@@ -881,7 +952,7 @@ namespace CalcProject {
                         placeListBox();
                         oldSelected = Tables[0].exName;
                     }
-                    changeIndex(Tables.Count - 1);
+                    else changeIndex(Tables.Count - 1);
 
 
                     //rExpressions.Visible = label1.Visible = button1.Visible = txtZ.Visible = false;
@@ -894,21 +965,7 @@ namespace CalcProject {
                     dg = writeDG(table);
 
                     if (!existsControl("bNext")) {
-                        Button bNext, bPrev;
-                        bNext = new Button();
-                        bNext.Name = "bNext";
-                        bNext.Text = ">";
-                        bNext.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) + 5, dg.Location.Y + dg.Height + 5);
-                        this.Controls.Add(bNext);
-                        bNext.Click += bNext_Click;
-
-                        bPrev = new Button();
-                        bPrev.Name = "bPrev";
-                        bPrev.Text = "<";
-                        bPrev.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) - bNext.Width, dg.Location.Y + dg.Height + 5);
-                        bPrev.Enabled = false;
-                        this.Controls.Add(bPrev);
-                        bPrev.Click += bPrev_Click;
+                        createControlsUnderDG(dg);
                     }
                     if (existsControl("insertingWindow") && existsControl("background")) {
                         this.Controls["insertingWindow"].Dispose();

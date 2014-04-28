@@ -4,12 +4,36 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Windows.Forms;
 
 //A questa classe vengono passate solo stringhe già controllate
 //e funzionanti
 
 namespace CalcProject {
     class cTable {
+        public DataGridView getDG(int index) { return DGs[index]; }
+
+        public void addDG(DataGridView DG) {
+            DGs.Add(DG);
+            DGIndex++;
+        }
+
+        public int Index { get { return DGIndex; } set { this.DGIndex = value; } }
+
+        List<DataGridView> DGs = new List<DataGridView>();
+        int DGIndex = 0;
+
+        private string negateZ(string FunzioneZ) {
+            string tmp = "";
+            if (FunzioneZ[0] != '+' && FunzioneZ[0] != '-') tmp += '-';
+            for (int i = 0; i < FunzioneZ.Length; i++) {
+                if (FunzioneZ[i] == '-') tmp += '+';
+                else if (FunzioneZ[i] == '+') tmp += '-';
+                else tmp += FunzioneZ[i];
+            }
+            return tmp;
+        }
+
 
         bool containsNumbers(string t) {
             for (int i = 0; i < t.Length; i++) {
@@ -111,10 +135,6 @@ namespace CalcProject {
         /// </summary>
         public string[] Functions { get { return sFunzioni; } }
 
-        /// <summary>
-        /// Ricevi l'indice della tabella.
-        /// </summary>
-        public int tableIndex { get { return tIndex; } set { tIndex = value; } }
         
 
         string nomeEsercizio = "";
@@ -132,6 +152,7 @@ namespace CalcProject {
 
 
         public cTable(string file, out string errore) {
+            
             using (StreamReader s = new StreamReader(file)) {
                 List<string> funzioni = new List<string>();
                 errore = null;
@@ -151,6 +172,7 @@ namespace CalcProject {
                 string line = "";
                 string tmpZ = "";
                 int counter = 0;
+                #region Lettura del file
                 while ((line = s.ReadLine()) != null) {
                     switch (counter) {
                         default:
@@ -167,6 +189,9 @@ namespace CalcProject {
                         case 1:
                             line = line.ToLower();
                             if (line == "min" || line == "minimo" || line == "max" || line == "massimo") {
+                                line = line == "minimo" ? "min" :
+                                    line == "massimo" ? "max" : 
+                                    line;
                                 problema = line;
                             }
                             else { errore = "errore"; return; }
@@ -190,6 +215,8 @@ namespace CalcProject {
                     }
                     counter++;
                 }
+                #endregion
+
                 sFunzioneZ = "";
                 int index = 1;
                 string tmp = "";
@@ -210,6 +237,8 @@ namespace CalcProject {
                     index = index + 1;
                 }
                 sFunzioneZ = tmp;
+
+                if (problema == "min") sFunzioneZ = negateZ(sFunzioneZ);
 
                 sFunzioni = new string[funzioni.Count];
                 int j = 0;
@@ -296,7 +325,7 @@ namespace CalcProject {
         /// <param name="Z">Stringa Z</param>
         /// <param name="sFunzioni">Insieme delle funzioni del sistema</param>
         /// <param name="exName">Nome dell'esercizio verrà visualizzato</param>
-        public cTable(string exName, string Z, string[] sFunzioni, out string error) {
+        public cTable(string exName, string Z, string[] sFunzioni, string problema, out string error) {
             error = null;
             tIndex = 0;
 
@@ -327,6 +356,9 @@ namespace CalcProject {
             this.nomeEsercizio = exName;
             this.sFunzioni = sFunzioni;
             this.sFunzioneZ = Z;
+            problema = this.problema;
+            if (problema == "min") this.sFunzioneZ = negateZ(this.sFunzioneZ);
+
             //Lettura della Z
             //http://regex101.com/r/aM4wZ6/#debugger
             string[] elemZ = Regex.Split(sFunzioneZ, @"([-|\+]{0,1}\d*\,?\d{0,}x\d*\d{1,})");
