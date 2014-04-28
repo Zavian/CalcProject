@@ -790,10 +790,6 @@ namespace CalcProject {
             //}
         }
 
-        private void mainForm_Load(object sender, EventArgs e) {
-            System.Drawing.Text.PrivateFontCollection pfc = new System.Drawing.Text.PrivateFontCollection();
-            pfc.AddFontFile("Cicle_Fina.ttf");
-        }
 
 
         private void nuovoSistemaDaGUIToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -923,6 +919,7 @@ namespace CalcProject {
                 }
             }
         }
+
 
         
 
