@@ -131,10 +131,10 @@ namespace CalcProject {
         List<String[]> sNumbers = new List<String[]>();
 
 
-        public cTable(string file)
-        {
-            using (StreamReader s = new StreamReader(file))
-            {
+        public cTable(string file, out string errore) {
+            using (StreamReader s = new StreamReader(file)) {
+                List<string> funzioni = new List<string>();
+                errore = null;
                 //nome es
                 //max|min
                 //coefficienti Z divisi da ;
@@ -149,27 +149,144 @@ namespace CalcProject {
                 //#
 
                 string line = "";
+                string tmpZ = "";
                 int counter = 0;
-                while ((line = s.ReadLine()) != null)
-                {
-                    //switch (counter)
-                    //{
-                    //    default: throw new System.ArgumentException(
-                    //        "Seguire il tutorial (F1) per la generazione del file"
-                    //        );
-                    //        break;
+                while ((line = s.ReadLine()) != null) {
+                    switch (counter) {
+                        default:
+                            if (containsNumbers(line) && line.Contains('=')) {
+                                funzioni.Add(line);
+                            }
+                            else {
+                                if (line == "#") break;
+                                else { errore = "errore"; return; }
+                            }
+                            break;
 
-                    //    case 0: nomeEsercizio = line; break;
-                    //    case 1:
-                    //        line = line.ToLowerCase();
-                    //        if (line == "min" || line == "minimo" || line == "max" || line == "massimo")
-                    //        {
+                        case 0: nomeEsercizio = line; break;
+                        case 1:
+                            line = line.ToLower();
+                            if (line == "min" || line == "minimo" || line == "max" || line == "massimo") {
+                                problema = line;
+                            }
+                            else { errore = "errore"; return; }
+                            break;
 
-                    //        }
+                        case 2:
+                            line = line.ToLower();
+                            if (!line.Contains('<') && !line.Contains('>') && !line.Contains('=') && containsNumbers(line)) {
+                                tmpZ = line;
+                            }
+                            else { errore = "errore"; return; }
+                            break;
 
-                    //}
+                        case 3:
+                            line = line.ToLower();
+                            if (containsNumbers(line) && line.Contains('=')) {
+                                funzioni.Add(line);
+                            }
+                            else { errore = "errore"; return; }
+                            break;
+                    }
                     counter++;
                 }
+                sFunzioneZ = "";
+                int index = 1;
+                string tmp = "";
+                string[] tmpArrayZ = tmpZ.Split(';');
+                for (int i = 0; i < tmpArrayZ.Length; i++) {
+                    tmpArrayZ[i] = tmpArrayZ[i].Replace('.', ',');
+                    if (containsNumbers(tmpArrayZ[i])) {
+                        if (i < tmpArrayZ.Length - 1) {
+                            tmp += tmpArrayZ[i] + "x" + index;
+                            if (tmpArrayZ[i + 1][0] != '-') tmp += "+";
+                        }
+                        else tmp += tmpArrayZ[i] + "x" + index;
+                    }
+                    else {
+                        errore = "errore";
+                        return;
+                    }
+                    index = index + 1;
+                }
+                sFunzioneZ = tmp;
+
+                sFunzioni = new string[funzioni.Count];
+                int j = 0;
+                foreach (var item in funzioni) {
+                    index = 1;
+                    string[] tmpArray = item.Split(';');
+                    if (tmpArray.Length - 2 > tmpArrayZ.Length) { errore = "errore"; return; }
+
+                    tmp = "";
+                    for (int i = 0; i < tmpArray.Length; i++) {
+                        tmpArray[i] = tmpArray[i].Replace(".", ",");
+                        if (containsNumbers(tmpArray[i]) && i < tmpArray.Length - 1) {
+                            if (i < tmpArray.Length - 3) {
+                                tmp += tmpArray[i] + "x" + index;
+                                if (tmpArray[i + 1][0] != '-') tmp += "+";
+                            }
+                            else tmp += tmpArray[i] + "x" + index;
+                        }
+                        else {
+                            tmp += tmpArray[i];
+                        }
+                        index = index + 1;
+                    }
+                    sFunzioni[j] = tmp;
+                    j = j + 1;
+                }
+
+                string[] elemZ = Regex.Split(sFunzioneZ, @"([-|\+]{0,1}\d*\,?\d{0,}x\d*\d{1,})");
+                elemZ = elemZ.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
+                iBMax = elemZ.Length;
+                iSMax = iBMax + 1;
+                for (int i = 0; i < sFunzioni.Length; i++) {
+                    tmp = "";
+                    if (sFunzioni[i].Contains("<="))
+                        tmp = setScarto(sFunzioni[i]);
+                    else if (sFunzioni[i].Contains(">=")) {
+                        tmp = setScarto(sFunzioni[i]);
+                    }
+                    sFunzioni[i] = tmp;
+                }
+
+                bool fareArt = false;
+                for (int i = 0; i < sFunzioni.Length; i++) {
+                    if (sFunzioni[i].Contains('>')) { fareArt = true; break; }
+                    if (sFunzioni[i].Contains('=') && !sFunzioni[i].Contains('>') && !sFunzioni[i].Contains('<')) { fareArt = true; break; }
+                }
+
+                if (fareArt) {
+                    iAMax = iSMax;
+                    for (int i = 0; i < sFunzioni.Length; i++) {
+                        tmp = "";
+                        tmp = setArtific(sFunzioni[i]);
+                        sFunzioni[i] = tmp;
+                    }
+
+                }
+
+                for (int i = 0; i < sFunzioni.Length; i++) {
+                    //http://regex101.com/
+
+                    //Selezione dei termini singoli della funzione
+                    string[] tmpArray = Regex.Split(sFunzioni[i], @"([-|\+]{0,1}\d*\,?\d{0,}x\d*\d{1,})");
+                    tmpArray = tmpArray.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
+                    tmpArray[tmpArray.Length - 1] = tmpArray[tmpArray.Length - 1].Replace("=", "");
+                    tmpArray[tmpArray.Length - 1] = tmpArray[tmpArray.Length - 1].Replace("<", "");
+                    tmpArray[tmpArray.Length - 1] = tmpArray[tmpArray.Length - 1].Replace(">", "");
+                    sVars.Add(tmpArray);
+
+
+                    //Selezione dei termini noti della funzione
+                    //tmp1 = variabile finale
+                    for (j = 0; j < tmpArray.Length - 1; j++) {
+                        tmpArray[j] = tmpArray[j].Remove(tmpArray[j].LastIndexOf('x'));
+                    }
+                    sNumbers.Add(tmpArray);
+                }
+
             }
         }
 
