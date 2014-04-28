@@ -11,6 +11,8 @@ using System.Text.RegularExpressions;
 namespace CalcProject {
     public partial class mainForm : Form {
 
+        double M;
+
         //I summary verranno messi a codice completo, dato che può essere
         //soggetto a modifiche (e i summary sono fastidiosi)
         //Per ora si avranno summary delle regions
@@ -22,6 +24,14 @@ namespace CalcProject {
         /// <param name="name">Nome del controllo.</param>
         bool existsControl(string name) {
             return this.Controls.Find(name, true).Length > 0;
+        }
+
+        bool isThereM(DataGridView dg, int columnIndex) {
+            double[] tmp = getColumn(dg, columnIndex);
+            for (int i = 0; i < tmp.Length; i++) {
+                if (tmp[i] == M && M != 0) return true;
+            }
+            return false;
         }
 
         public double TruncateDecimal(double value, int precision) {
@@ -392,6 +402,8 @@ namespace CalcProject {
             if (entering == "fine") { this.Controls["bNext"].Enabled = false; return; }
 
             string[] exiting = exitingVar(dg, entering);
+            if (isThereM(dg, getColumnByHeader(dg, exiting[0])))
+                dg.Columns.RemoveAt(getColumnByHeader(dg, exiting[0]));
             calculateNewTable(dg, entering, exiting[0], exiting[1]);
             calculateGauss(dg, Convert.ToDouble(exiting[1]), Convert.ToInt32(exiting[2]), Convert.ToInt32(exiting[3]));
             writeCb(table, dg);
@@ -415,8 +427,9 @@ namespace CalcProject {
         #region Sezione metodi di richiesta
         #region GetNumber
         double getNumber(string t) {
-            string tmp = "";
             t = t.Trim();
+            if (t == "-M") 
+                return M = -table.MaxNumber*10000.00;
             double returner = itIsDivided(t) ? soDivideIt(t) : Convert.ToDouble(t);
             return TruncateDecimal(returner, 2);
         }
@@ -456,8 +469,9 @@ namespace CalcProject {
         }
         private double[] getRow(DataGridView dg, int rowIndex) {
             double[] ris;
-            ris = new double[table.nVariabiliScarto];
-            for (int i = 0; i < table.nVariabiliScarto; i++) {
+            int select = table.nVariabiliArtificiali == 0 ? table.nVariabiliScarto - 1 : table.nVariabiliArtificiali - 1;
+            ris = new double[select];
+            for (int i = 0; i < select; i++) {
                 ris[i] = getNumber(dg[i + 2, rowIndex].Value.ToString());
             }
             return ris;
@@ -506,7 +520,8 @@ namespace CalcProject {
             DataGridView dg = new DataGridView();
             dg.Name = "dg";
             //CB, Base, Var decisionali + Var scarto, B
-            dg.ColumnCount = 3 + table.nVariabiliScarto;
+            int select = table.nVariabiliArtificiali == 0 ? table.nVariabiliScarto - 1 : table.nVariabiliArtificiali - 1;
+            dg.ColumnCount = 3 + select;
             dg.RowCount = table.Functions.Length + 2;
             //le prime due non le conta, Columns.Count - 1; l'ultima non la conta
             for (int i = 2; i < dg.Columns.Count; i++) {
@@ -525,37 +540,71 @@ namespace CalcProject {
             dg.Columns[1].HeaderText = /* All your */"Base" /* are belong to us */;
             this.Controls.Add(dg);
 
-            for (int i = 0; i < table.nVariabiliScarto; i++) {
+            for (int i = 0; i < select; i++) {
                 dg.Columns[i + 2].HeaderText = "x" + (i + 1);
             }
-            dg.Columns[table.nVariabiliScarto + 2].HeaderText = "b";
+            dg.Columns[select + 2].HeaderText = "b";
             return dg;
         }
         private static void writeHeaders(cTable table, DataGridView dg) {
             for (int i = 0; i < table.Functions.Length; i++) {
+                int index = table.Functions[i].IndexOf('<');
+                if(index < 0) index = table.Functions[i].IndexOf('>');
+                if(index < 0) index = table.Functions[i].IndexOf('=');
+
+                string tmp = table.Functions[i].Substring(0, index);
+                string[] tmpArray = Regex.Split(tmp, @"(x\d{1,})");
+                tmpArray = tmpArray.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
+
                 dg[0, i].Value = 0;
-                dg[1, i].Value = "x" + (table.nVariabili + (1 + i));
+                dg[1, i].Value = tmpArray[tmpArray.Length - 1];
             }
             dg[1, table.Functions.Length].Value = "Cj"; //GTA San Andreas cit.
             dg[1, table.Functions.Length + 1].Value = "SAB";
         }
-        private static void writeTableNumbers(cTable t, DataGridView dg) {
+        private void writeTableNumbers(cTable t, DataGridView dg) {
             for (int r = 0; r < t.Functions.Length /*Da aggiungere il +1 per Cj */; r++) {
                 //t.nVars per far si che riempisse tutte le caselle delle var decisionali
                 //+1 per riempire quella dello scarto
+                string v = null;
+                if (t.Functions[r].Contains(">=") || t.Functions[r].Contains("=") && !t.Functions[r].Contains("<")) {
+                    int index = t.Functions[r].IndexOf('<');
+                    if (index < 0) index = t.Functions[r].IndexOf('>');
+                    if (index < 0) index = t.Functions[r].IndexOf('=');
+
+                    string tmp = t.Functions[r].Substring(0, index);
+                    string[] tmpArray = Regex.Split(tmp, @"(x\d{1,})");
+                    tmpArray = tmpArray.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
+                    v = tmpArray[tmpArray.Length - 1];
+                }
                 for (int c = 0; c < t.nVariabili + 1; c++) {
                     if (c < t.nVariabili) {
                         dg[c + 2, r].Value = t.coefficientTerms[r][c];
 
                         //Scrittura Cj
-                        dg[c + 2, t.nVariabiliScarto - t.nVariabili].Value = t.ZArray[c];
+                        dg[c + 2, dg.RowCount - 2].Value = t.ZArray[c];
                     }
                     else { //Ho scritto tutti i coefficienti
-                        dg[c + 2 + r, r].Value = 1;
+                        //Scritto la B
+                        dg[c + 2 + r, r].Value = t.coefficientTerms[r][c];
+
+                        //Scrittura M
+                        if (v != null) {
+                            int columnIndex = getColumnByHeader(dg, v);
+                            dg[columnIndex, dg.RowCount - 2].Value = "-M";
+                        }
                         //c + 2 per il fatto delle prime due da non contare
                         //+ r per contare a che funzione sono arrivato
                         //quindi per arrivare all'nesimo scarto
 
+                    }
+                }
+                if (t.nVariabiliArtificiali > 0) {
+                    for(int c = (t.nVariabiliArtificiali - t.nVariabili) + 2; c < dg.ColumnCount - 1; c++) {
+                        if (t.Functions[r].Contains(">=") || t.Functions[r].Contains("=") && !t.Functions[r].Contains("<")) {
+                            dg[c, r].Value = 1;
+                        }
+                        else break;
                     }
                 }
             }
@@ -641,7 +690,8 @@ namespace CalcProject {
         }       
         private string enteringVar(DataGridView dg) {
             int dc = table.nVariabili;
-            double[] myArray = new double[table.nVariabiliScarto];
+            int select = table.nVariabiliArtificiali == 0 ? table.nVariabiliScarto - 1 : table.nVariabiliArtificiali - 1;
+            double[] myArray = new double[select];
             for (int i = 0; i < myArray.Length; i++) { myArray[i] = double.MinValue; }
             for (int i = 2; i < dg.Columns.Count - 1; i++) {
                 string header = dg.Columns[i].HeaderText;
@@ -675,20 +725,26 @@ namespace CalcProject {
         }
         private string[] exitingVar(DataGridView dg, string enteringVar) {
             int dc = table.nVariabili;
-            double[] myArray = new double[table.nVariabiliScarto];
+            int select = table.nVariabiliArtificiali == 0 ? table.nVariabiliScarto - 1 : table.nVariabiliArtificiali - 1;
+            double[] myArray = new double[select];
             for (int i = 0; i < myArray.Length; i++) { myArray[i] = double.MaxValue; }
 
             int columnIndex = getColumnByHeader(dg, enteringVar);
             for (int i = 0; i < table.Functions.Length; i++) {
                 double[] colonna = getColumn(dg, dg.ColumnCount - 1);
                 myArray[i] = getColumn(dg, dg.ColumnCount - 1)[i] / getNumber(dg[columnIndex, i].Value.ToString());
-                bool banana = true;
             }
-            double minValue = myArray.Min();
+            double minValue = myArray.Where(x=> x > 0).ToArray().Min();
+
             int minIndex = myArray.ToList().IndexOf(minValue);
             double pivot = getNumber(dg[columnIndex, minIndex].Value.ToString());
             MessageBox.Show("La variabile uscente è: " + dg[1, minIndex].Value.ToString());
             string[] returner = { dg[1, minIndex].Value.ToString(), pivot.ToString(), columnIndex.ToString(), minIndex.ToString() };
+            if (minValue < -table.MaxNumber * 900) {
+                returner = new string[5] { dg[1, minIndex].Value.ToString(), pivot.ToString(), columnIndex.ToString(), minIndex.ToString(), "delete" };
+            }
+            
+            
             return returner;
         }
 
@@ -714,8 +770,8 @@ namespace CalcProject {
             label1.Dispose();
             button2.Dispose();
             //Debug staff
-            string[] dbgF = new string[] { "2x1+2x2<=160", "x1+2x2<=120", "4x1+2x2<=280" };
-            string dbgZ = "x1+"+(3/2).ToString()+"x2";
+            string[] dbgF = new string[] { "x1+x2>=1", "5x1+x2<=5", "x1+4x2<=4" };
+            string dbgZ = "4x1+6x2";
             //--------------------//
             TextBox exerciseFunctions = getMiniTextBox("exerciseFunctions");
             getMiniTextBox("exerciseZ").Text = dbgZ;
@@ -732,6 +788,11 @@ namespace CalcProject {
 
         private void nuovoSistemaToolStripMenuItem_Click(object sender, EventArgs e) {
             showInsertingWindow();
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
         }
 
         

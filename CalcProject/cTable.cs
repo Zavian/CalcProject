@@ -53,6 +53,20 @@ namespace CalcProject {
         /// </summary>
         public string exName { get { return nomeEsercizio; } }
 
+        public double MaxNumber { get {
+            double[] myArray = new double[sNumbers.Count];
+            for (int i = 0; i < sNumbers.Count(); i++)
+			{
+                double[] tmp = new double[sNumbers[i].Length];
+                for (int j = 0; j < sNumbers[i].Length; j++) {
+                    tmp[j] = Convert.ToDouble(sNumbers[i][j]);
+                }
+                myArray[i] = tmp.Max();
+			}
+            return myArray.Max();
+        }
+            
+        }
 
         /// <summary>
         /// Ricevi l'array degli elementi della Z.
@@ -78,7 +92,12 @@ namespace CalcProject {
         /// Ricevi il numero delle variabili totali.
         /// </summary>
         public int nVariabiliScarto { get { return iSMax; } }
-        
+
+        // <summary>
+        /// Ricevi il numero delle variabili totali.
+        /// </summary>
+        public int nVariabiliArtificiali { get { return iAMax; } }
+
         /// <summary>
         /// Ricevi la lista dei coefficienti.
         /// </summary>
@@ -107,47 +126,52 @@ namespace CalcProject {
         int tIndex = 0;
         int iBMax = 0;
         int iSMax = 0;
+        int iAMax = 0;
         List<String[]> sVars = new List<string[]>();
         List<String[]> sNumbers = new List<String[]>();
-        
-        
-        //public cTable(string file) {
-        //    using(StreamReader s = new StreamReader(File)) {
-        //        //nome es
-        //        //max|min
-        //        //coefficienti Z divisi da ;
-        //        //vincoli coi coefficienti divisi ;
-        //        //ultima riga #
-                
-        //        //Esempio:
-        //        //Es Pippo
-        //        //Max
-        //        //3; 4; 6 x1 -> x3
-        //        //3; 4; >=; 450
-        //        //#
-                
-        //        string line = "";
-        //        int counter = 0;
-        //        while((line = file.ReadLine()) != null)
-        //        {
-        //           switch(counter) {
-        //               default: throw new System.ArgumentException(
-        //                   "Seguire il tutorial (F1) per la generazione del file"
-        //                   );
-        //                   break;
-                           
-        //               case 0: nomeEsercizio = line; break;
-        //               case 1: 
-        //                    line = line.ToLowerCase();
-        //                    if(line == "min" || line == "minimo" || line == "max" || line == "massimo") {
-                                
-        //                    }
-                       
-        //           }
-        //           counter++;
-        //        }
-        //    }
-        //}
+
+
+        public cTable(string file)
+        {
+            using (StreamReader s = new StreamReader(file))
+            {
+                //nome es
+                //max|min
+                //coefficienti Z divisi da ;
+                //vincoli coi coefficienti divisi ;
+                //ultima riga #
+
+                //Esempio:
+                //Es Pippo
+                //max
+                //3; 4; 6 x1 -> x3
+                //3; 4; >=; 450
+                //#
+
+                string line = "";
+                int counter = 0;
+                while ((line = s.ReadLine()) != null)
+                {
+                    //switch (counter)
+                    //{
+                    //    default: throw new System.ArgumentException(
+                    //        "Seguire il tutorial (F1) per la generazione del file"
+                    //        );
+                    //        break;
+
+                    //    case 0: nomeEsercizio = line; break;
+                    //    case 1:
+                    //        line = line.ToLowerCase();
+                    //        if (line == "min" || line == "minimo" || line == "max" || line == "massimo")
+                    //        {
+
+                    //        }
+
+                    //}
+                    counter++;
+                }
+            }
+        }
 
         /// <summary>
         /// Inizializzazione oggetto
@@ -195,7 +219,44 @@ namespace CalcProject {
 
             //sFunzioni[0] = 3x1-3x2-4x3
             //sVars[0] = {3x1, -3x2, -4x3}
-            
+
+           
+
+            #region #DEPRECATED
+            //Prendo il massimo di variabili di base nel sistema
+            //sVars[i].Length - 1 perché altrimenti conta la parte destra del sistema
+            //for (int i = 0; i < sVars.Count; i++) { 
+            //    iBMax = Math.Max(sVars[i].Length - 1, iBMax); 
+            //} 
+            #endregion
+
+            iSMax = iBMax + 1;
+            for (int i = 0; i < sFunzioni.Length; i++) {
+                string tmp = "";
+                if (sFunzioni[i].Contains("<="))
+                    tmp = setScarto(sFunzioni[i]);
+                else if (sFunzioni[i].Contains(">=")) {
+                    tmp = setScarto(sFunzioni[i]);
+                }
+                sFunzioni[i] = tmp;
+            }
+
+            bool fareArt = false;
+            for (int i = 0; i < sFunzioni.Length; i++) {
+                if (sFunzioni[i].Contains('>')) { fareArt = true; break; }
+                if (sFunzioni[i].Contains('=') && !sFunzioni[i].Contains('>') && !sFunzioni[i].Contains('<')) { fareArt = true; break; }
+            }
+
+            if (fareArt) {
+                iAMax = iSMax;
+                for (int i = 0; i < sFunzioni.Length; i++) {
+                    string tmp = "";
+                    tmp = setArtific(sFunzioni[i]);
+                    sFunzioni[i] = tmp;
+                }
+                
+            }
+
             for (int i = 0; i < sFunzioni.Length; i++) {
                 //http://regex101.com/
 
@@ -216,18 +277,7 @@ namespace CalcProject {
                 sNumbers.Add(tmp);
             }
 
-            #region #DEPRECATED
-            //Prendo il massimo di variabili di base nel sistema
-            //sVars[i].Length - 1 perché altrimenti conta la parte destra del sistema
-            //for (int i = 0; i < sVars.Count; i++) { 
-            //    iBMax = Math.Max(sVars[i].Length - 1, iBMax); 
-            //} 
-            #endregion
-
-            for (int i = 0; i < sFunzioni.Length; i++) {
-                string tmp = setScarto(sFunzioni[i]);
-                sFunzioni[i] = tmp;
-            }
+            
         }
         
         /// <summary>
@@ -235,17 +285,31 @@ namespace CalcProject {
         /// </summary>
         /// <param name="sFunzione">Funzione a cui aggiungere la variabile di scarto.</param>
         private string setScarto(string sFunzione) {
-            if (sFunzione.Contains("=") && !sFunzione.Contains("<=")) return sFunzione;
+            if (sFunzione.Contains('<') || sFunzione.Contains('>')) {
+                int index = sFunzione.IndexOf('>');
+                if (index < 0) index = sFunzione.IndexOf('<');
+                //index -= 1;
 
-
-            iSMax = iSMax == 0 ? iBMax + 1 : iSMax+1;
-            if (sFunzione.Contains("<=")) {
-                int index = sFunzione.IndexOf('<');
-                index = index--;
-                string s = sFunzione.Insert(index, "+x" + iSMax);
-                return s.Replace("<=", "=");            
+                string s = "";
+                if (sFunzione.Contains('>')) s = sFunzione.Insert(index, "-1x" + iSMax);
+                else if (sFunzione.Contains('<')) s = sFunzione.Insert(index, "+1x" + iSMax);
+                iSMax += 1;
+                return s;
             }
-            return "Errore";
+            else return sFunzione;
+        }
+
+        private string setArtific(string sFunzione)
+        {
+            if ((sFunzione.Contains('>') || sFunzione.Contains('=')) && !sFunzione.Contains('<')){
+                int index = sFunzione.IndexOf('>');
+                if (index < 0) index = sFunzione.IndexOf('=');
+                //index -= 1;
+                string s = sFunzione.Insert(index, "+1x" + iAMax);
+                iAMax += 1;
+                return s;
+            }
+            else return sFunzione;
         }
     }
 }
