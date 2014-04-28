@@ -29,7 +29,7 @@ namespace CalcProject {
         bool isThereM(DataGridView dg, int columnIndex) {
             double[] tmp = getColumn(dg, columnIndex);
             for (int i = 0; i < tmp.Length; i++) {
-                if (tmp[i] == M) return true;
+                if (tmp[i] == M && M != 0) return true;
             }
             return false;
         }
@@ -553,7 +553,7 @@ namespace CalcProject {
                 if(index < 0) index = table.Functions[i].IndexOf('=');
 
                 string tmp = table.Functions[i].Substring(0, index);
-                string[] tmpArray = Regex.Split(tmp, @"(x\d)");
+                string[] tmpArray = Regex.Split(tmp, @"(x\d{1,})");
                 tmpArray = tmpArray.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
 
                 dg[0, i].Value = 0;
@@ -573,7 +573,7 @@ namespace CalcProject {
                     if (index < 0) index = t.Functions[r].IndexOf('=');
 
                     string tmp = t.Functions[r].Substring(0, index);
-                    string[] tmpArray = Regex.Split(tmp, @"(x\d)");
+                    string[] tmpArray = Regex.Split(tmp, @"(x\d{1,})");
                     tmpArray = tmpArray.Where(x => !string.IsNullOrEmpty(x)).ToArray(); //<-- Cancella le celle vuote
                     v = tmpArray[tmpArray.Length - 1];
                 }
@@ -734,7 +734,7 @@ namespace CalcProject {
                 double[] colonna = getColumn(dg, dg.ColumnCount - 1);
                 myArray[i] = getColumn(dg, dg.ColumnCount - 1)[i] / getNumber(dg[columnIndex, i].Value.ToString());
             }
-            double minValue = myArray.Min();
+            double minValue = myArray.Where(x=> x > 0).ToArray().Min();
 
             int minIndex = myArray.ToList().IndexOf(minValue);
             double pivot = getNumber(dg[columnIndex, minIndex].Value.ToString());
@@ -770,8 +770,8 @@ namespace CalcProject {
             label1.Dispose();
             button2.Dispose();
             //Debug staff
-            string[] dbgF = new string[] { "x1+0x2<=8", "0x1+x2<=10", "5x1+3x2>=45" };
-            string dbgZ = "40x1+36x2";
+            string[] dbgF = new string[] { "x1+x2>=1", "5x1+x2<=5", "x1+4x2<=4" };
+            string dbgZ = "4x1+6x2";
             //--------------------//
             TextBox exerciseFunctions = getMiniTextBox("exerciseFunctions");
             getMiniTextBox("exerciseZ").Text = dbgZ;
@@ -788,6 +788,11 @@ namespace CalcProject {
 
         private void nuovoSistemaToolStripMenuItem_Click(object sender, EventArgs e) {
             showInsertingWindow();
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
         }
 
         

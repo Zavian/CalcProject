@@ -129,45 +129,49 @@ namespace CalcProject {
         int iAMax = 0;
         List<String[]> sVars = new List<string[]>();
         List<String[]> sNumbers = new List<String[]>();
-        
-        
-        //public cTable(string file) {
-        //    using(StreamReader s = new StreamReader(File)) {
-        //        //nome es
-        //        //max|min
-        //        //coefficienti Z divisi da ;
-        //        //vincoli coi coefficienti divisi ;
-        //        //ultima riga #
-                
-        //        //Esempio:
-        //        //Es Pippo
-        //        //Max
-        //        //3; 4; 6 x1 -> x3
-        //        //3; 4; >=; 450
-        //        //#
-                
-        //        string line = "";
-        //        int counter = 0;
-        //        while((line = file.ReadLine()) != null)
-        //        {
-        //           switch(counter) {
-        //               default: throw new System.ArgumentException(
-        //                   "Seguire il tutorial (F1) per la generazione del file"
-        //                   );
-        //                   break;
-                           
-        //               case 0: nomeEsercizio = line; break;
-        //               case 1: 
-        //                    line = line.ToLowerCase();
-        //                    if(line == "min" || line == "minimo" || line == "max" || line == "massimo") {
-                                
-        //                    }
-                       
-        //           }
-        //           counter++;
-        //        }
-        //    }
-        //}
+
+
+        public cTable(string file)
+        {
+            using (StreamReader s = new StreamReader(file))
+            {
+                //nome es
+                //max|min
+                //coefficienti Z divisi da ;
+                //vincoli coi coefficienti divisi ;
+                //ultima riga #
+
+                //Esempio:
+                //Es Pippo
+                //max
+                //3; 4; 6 x1 -> x3
+                //3; 4; >=; 450
+                //#
+
+                string line = "";
+                int counter = 0;
+                while ((line = s.ReadLine()) != null)
+                {
+                    //switch (counter)
+                    //{
+                    //    default: throw new System.ArgumentException(
+                    //        "Seguire il tutorial (F1) per la generazione del file"
+                    //        );
+                    //        break;
+
+                    //    case 0: nomeEsercizio = line; break;
+                    //    case 1:
+                    //        line = line.ToLowerCase();
+                    //        if (line == "min" || line == "minimo" || line == "max" || line == "massimo")
+                    //        {
+
+                    //        }
+
+                    //}
+                    counter++;
+                }
+            }
+        }
 
         /// <summary>
         /// Inizializzazione oggetto

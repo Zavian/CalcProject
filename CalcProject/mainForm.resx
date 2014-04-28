@@ -123,11 +123,11 @@
   <data name="label1.Text" xml:space="preserve">
     <value>Benvenuto all'interno di SimpleSimplex.
 
-Questo programma è stato fatto per aiutarti 
-nel trovare le migliori soluzioni
-all'interno di problemi di ricerca operativa.
-Io andrò a utilizzare il metodo del simplesso, 
-tu avrai solo bisogno di
-sapere il sistema dei vincoli :)</value>
+Questo programma ti aiuterà nei problemi
+di ricerca operativa utilizzando il metodo
+del simplesso. Se è la prima volta che lo 
+utilizzi la guida ti potrà essere d'aiuto.
+          
+</value>
   </data>
 </root>

@@ -27,7 +27,6 @@
             this.stripMenu = new System.Windows.Forms.MenuStrip();
             this.nuovoSistemaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aiutoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.label3 = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.stripMenu.SuspendLayout();
@@ -59,22 +58,14 @@
             this.aiutoToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
             this.aiutoToolStripMenuItem.Text = "Aiuto";
             // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(603, 313);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(97, 39);
-            this.label3.TabIndex = 6;
-            this.label3.Text = "Z: 3x1+3x2+4x3\r\n3x1-3x2-4x3<=360\r\n2x1+3x2-4x3<=100";
-            // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(218, 205);
+            this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button2.Location = new System.Drawing.Point(241, 195);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(352, 23);
+            this.button2.Size = new System.Drawing.Size(307, 36);
             this.button2.TabIndex = 9;
-            this.button2.Text = "Inserimento pro";
+            this.button2.Text = "Inserimento Dati";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
@@ -85,10 +76,11 @@
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.Location = new System.Drawing.Point(248, 27);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(322, 160);
+            this.label1.Size = new System.Drawing.Size(300, 140);
             this.label1.TabIndex = 10;
             this.label1.Text = resources.GetString("label1.Text");
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // mainForm
             // 
@@ -98,7 +90,6 @@
             this.ClientSize = new System.Drawing.Size(712, 361);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.button2);
-            this.Controls.Add(this.label3);
             this.Controls.Add(this.stripMenu);
             this.MainMenuStrip = this.stripMenu;
             this.Name = "mainForm";
@@ -116,7 +107,6 @@
         private System.Windows.Forms.MenuStrip stripMenu;
         private System.Windows.Forms.ToolStripMenuItem nuovoSistemaToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aiutoToolStripMenuItem;
-        private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Label label1;
     }
