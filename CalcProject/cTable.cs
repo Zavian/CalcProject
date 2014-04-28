@@ -6,48 +6,45 @@ using System.Text.RegularExpressions;
 using System.IO;
 using System.Windows.Forms;
 
-//A questa classe vengono passate solo stringhe già controllate
-//e funzionanti
 
 namespace CalcProject {
     class cTable {
-        public DataGridView getDG(int index) { return DGs[index]; }
 
-        public void addDG(DataGridView DG) {
-            DGs.Add(DG);
-            DGIndex++;
-        }
-
-        public int Index { get { return DGIndex; } set { this.DGIndex = value; } }
-
-        List<DataGridView> DGs = new List<DataGridView>();
-        int DGIndex = 0;
-
-        private string negateZ(string FunzioneZ) {
+        /// <summary>
+        /// Metodo per negare la funzione.
+        /// </summary>
+        /// <param name="t">Funzione da negare</param>
+        /// <returns></returns>
+        private string negateZ(string t) {
             string tmp = "";
-            if (FunzioneZ[0] != '+' && FunzioneZ[0] != '-') tmp += '-';
-            for (int i = 0; i < FunzioneZ.Length; i++) {
-                if (FunzioneZ[i] == '-') tmp += '+';
-                else if (FunzioneZ[i] == '+') tmp += '-';
-                else tmp += FunzioneZ[i];
+            if (t[0] != '+' && t[0] != '-') tmp += '-';
+            for (int i = 0; i < t.Length; i++) {
+                if (t[i] == '-') tmp += '+';
+                else if (t[i] == '+') tmp += '-';
+                else tmp += t[i];
             }
             return tmp;
         }
 
-
+        /// <summary>
+        /// Metodo per controllare se la stringa contiene numeri.
+        /// </summary>
+        /// <param name="t">Stringa da controllare.</param>
+        /// <returns></returns>
         bool containsNumbers(string t) {
             for (int i = 0; i < t.Length; i++) {
                 if (t[i] >= '0' && t[i] <= '9') return true;
             }
             return false;
         }
+
         /// <summary>
-        /// Se ci sono solo X ritorna true
+        /// Metodo per controllare se ci sono solo X all'interno della stringa.
         /// </summary>
         bool onlyX(string t) {
             int counter = 0;
             for (int i = 0; i < t.Length; i++) {
-                bool isNumber = t[i] >= '0' && t[i] <= '9' || t[i] == '-' || t[i] == '+' || t[i] == '/';
+                bool isNumber = t[i] >= '0' && t[i] <= '9' || t[i] == '-' || t[i] == '+' || t[i] == '=' || t[i] == '<' || t[i] == '>';
                 if (!isNumber) { 
                     if (t[i] != 'x') return false; 
                     else counter += 1; 
@@ -56,6 +53,11 @@ namespace CalcProject {
             return counter > 0;
         }
 
+        /// <summary>
+        /// Metodo per controllare se ci sono numeri consecutivi all'interno della stringa.
+        /// </summary>
+        /// <param name="t">Stringa di richiesta.</param>
+        /// <returns></returns>
         bool consecutiveNumbers(string t) {
             List<int> tmp = new List<int>();
             for (int i = 0; i < t.Length; i++) {
@@ -77,6 +79,9 @@ namespace CalcProject {
         /// </summary>
         public string exName { get { return nomeEsercizio; } }
 
+        /// <summary>
+        /// Numero massimo all'interno della tabella.
+        /// </summary>
         public double MaxNumber { get {
             double[] myArray = new double[sNumbers.Count];
             for (int i = 0; i < sNumbers.Count(); i++)
@@ -327,38 +332,40 @@ namespace CalcProject {
         /// <param name="exName">Nome dell'esercizio verrà visualizzato</param>
         public cTable(string exName, string Z, string[] sFunzioni, string problema, out string error) {
             error = null;
-            tIndex = 0;
 
-            //Manipolazione delle variabili
-            //per correggere eventuali baggianate che fa l'utonto
-            Z = Z.Trim();
-            sFunzioni = sFunzioni.Select(x => x.Trim()).ToArray(); //Trimma tutto
-
-            sFunzioni = sFunzioni.Where(x => !string.IsNullOrEmpty(x)).ToArray();
 
             //Questi if per gestire eventuali cavolate nell'inserimento dei dati
             #region Gestione errore
-            /*
+            
             string tut = "\nFare riferimento al tutorial";
             if (!containsNumbers(Z) || !onlyX(Z)) { error = ("Errore nell'inserimento della Z" + tut); return; }
             if (!consecutiveNumbers(Z)) { error = ("Errore nell'ordine delle variabili della Z" + tut); return; }
 
-            //Da mettere apposto e gestire la parte destra della funzione
-            //for(int i = 0; i < sFunzioni.Length; i++) {
-            //    if (!containsNumbers(sFunzioni[i]) || !onlyX(sFunzioni[i]))
-            //        { error = ("Errore nell'inserimento delle funzioni" + tut); return; }
-            //    if (!consecutiveNumbers(sFunzioni[i]))
-            //        { error = ("Errore nell'ordine delle variabili delle funzioni" + tut); return; }
-            //}
-             * */
+            sFunzioni = sFunzioni.Where(x => !string.IsNullOrEmpty(x)).ToArray();
+            for(int i = 0; i < sFunzioni.Length; i++) {
+                if (!containsNumbers(sFunzioni[i]) || !onlyX(sFunzioni[i]))
+                    { error = ("Errore nell'inserimento delle funzioni" + tut); return; }
+                if (!consecutiveNumbers(sFunzioni[i]))
+                    { error = ("Errore nell'ordine delle variabili delle funzioni" + tut); return; }
+            }
             #endregion
+
+            //Manipolazione delle variabili
+            //per correggere eventuali baggianate che fa l'utonto
+            Z = Z.Trim();
+            Z = Z.Replace('.', ',');
+
+            sFunzioni = sFunzioni.Select(x => x.Trim()).ToArray(); //Trimma tutto
+            for (int i = 0; i < sFunzioni.Length; i++) {
+                sFunzioni[i] = sFunzioni[i].Replace('.', ',');
+            }
+            
 
             this.nomeEsercizio = exName;
             this.sFunzioni = sFunzioni;
             this.sFunzioneZ = Z;
             problema = this.problema;
             if (problema == "min") this.sFunzioneZ = negateZ(this.sFunzioneZ);
-
             //Lettura della Z
             //http://regex101.com/r/aM4wZ6/#debugger
             string[] elemZ = Regex.Split(sFunzioneZ, @"([-|\+]{0,1}\d*\,?\d{0,}x\d*\d{1,})");

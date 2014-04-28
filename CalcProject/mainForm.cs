@@ -11,8 +11,13 @@ using System.Text.RegularExpressions;
 namespace CalcProject {
     public partial class mainForm : Form {
 
-        double M;
+        double M;   //Variabile che avrà come valore la M
 
+        /// <summary>
+        /// Metodo di calcolo del risultato finale.
+        /// </summary>
+        /// <param name="dg">Datagrid da cui ricavarlo.</param>
+        /// <returns></returns>
         double calcRis(DataGridView dg) {
             int riga = table.Functions.Length; //qui sono alla riga cj
             double ris = 0;
@@ -22,19 +27,22 @@ namespace CalcProject {
             return ris;
         }
 
-        //I summary verranno messi a codice completo, dato che può essere
-        //soggetto a modifiche (e i summary sono fastidiosi)
-        //Per ora si avranno summary delle regions
 
-        //Metodo creato per comodità
         /// <summary>
-        /// Restituisce se esiste o meno il controllo richiesto.
+        /// Metodo per la ricerca del controllo selezionato.
         /// </summary>
         /// <param name="name">Nome del controllo.</param>
+        /// <returns></returns>
         bool existsControl(string name) {
             return this.Controls.Find(name, true).Length > 0;
         }
 
+        /// <summary>
+        /// Metodo per capire se esiste la M nella colonna.
+        /// </summary>
+        /// <param name="dg">Datagrid in cui controlla.</param>
+        /// <param name="columnIndex">Colonna in cui controlla.</param>
+        /// <returns></returns>
         bool isThereM(DataGridView dg, int columnIndex) {
             double[] tmp = getColumn(dg, columnIndex);
             for (int i = 0; i < tmp.Length; i++) {
@@ -43,7 +51,13 @@ namespace CalcProject {
             return false;
         }
 
-        public double TruncateDecimal(double value, int precision) {
+        /// <summary>
+        /// Metodo per la gestione della lunghezza dei double.
+        /// </summary>
+        /// <param name="value">Valore da troncare.</param>
+        /// <param name="precision">Precisione della troncatura</param>
+        /// <returns></returns>
+        public double TruncateDouble(double value, int precision) {
             double step = (double)Math.Pow(10, precision);
             int tmp = (int)Math.Truncate(step * value);
             return tmp / step;
@@ -53,7 +67,9 @@ namespace CalcProject {
             InitializeComponent();
         }
 
-        //Posiziona la listbox all'interno della form
+        /// <summary>
+        /// Posiziona la ListBox all'interno della form.
+        /// </summary>
         private void placeListBox() {
             stripMenu.Visible = true;
             ListBox lst = new ListBox();
@@ -72,14 +88,14 @@ namespace CalcProject {
             this.Controls.Add(lst);
         }
 
-        //Variabile necessaria per la gestione del
-        //change dell'index nella listbox
-        string oldSelected = "";
-        //Booleana necessaria per far capire al metodo
-        //del change index che non deve riscrivere la tabella
-        bool throughCode = false;
+        
+        string oldSelected = ""; //Variabile necessaria per lo switch tra i data grids        
+        bool throughCode = false; //Variabile necessaria per impostare via codice il cambio indice
 
-        //Metodo creato per comodità e ordine del codice
+        /// <summary>
+        /// Cambiamento dell'indice.
+        /// </summary>
+        /// <param name="index">Indice in cui cambiare.</param>
         void changeIndex(int index) { (this.Controls["lstExercises"] as ListBox).SelectedIndex = index; throughCode = true; }
         void lst_SelectedIndexChanged(object sender, EventArgs e) {
             //Semplicemente qui esso riscrive il datagrid nel caso si abbia cambiato tabella
@@ -142,21 +158,24 @@ namespace CalcProject {
         #endregion
 
 
-        /// <summary>
-        /// Questi metodo permette di creare la finestra di inserimento.
-        /// Essi va a creare tutti gli oggetti al suo interno e gestiscono il loro comportamento.
-        /// All'interno della sezione è possibile trovare (in ordine di apparizione):
-        ///     - Il pannello "insertingWindow"
-        ///     - Il pannello "background"
-        ///     - Il metodo "createInsertingControls"
-        ///     - I metodi di gestione dei controlli nella finestra.
-        /// </summary>
-        ///
         #region Sezione finestra di inserimento
+        /// <summary>
+        /// Metodo selezione della combobox all'interno della finestra di inserimento.
+        /// </summary>
+        /// <param name="name">Nome della combobox.</param>
+        /// <returns></returns>
         private ComboBox getMiniCombo(string name) { return this.Controls["insertingWindow"].Controls[name] as ComboBox; }
 
+        /// <summary>
+        /// Metodo selezione della textbox all'interno della finestra di inserimento.
+        /// </summary>
+        /// <param name="name">Nome della textbox.</param>
+        /// <returns></returns>
         private TextBox getMiniTextBox(string name) { return this.Controls["insertingWindow"].Controls[name] as TextBox; }
-        private ComboBox getMiniCb(string name) { return this.Controls["insertingWindow"].Controls[name] as ComboBox; }
+
+        /// <summary>
+        /// Metodo che mostra la finestra di inserimento.
+        /// </summary>
         private void showInsertingWindow() {
             TransPanel background = new TransPanel(this.Width,
                                                    this.Height,
@@ -164,7 +183,6 @@ namespace CalcProject {
                                                    );
             background.Size = this.Size;
             background.Name = "background";
-            background.Click += closeInsertingWindow;
             background.Location = new Point(0, 0);
             background.BackColor = Color.FromArgb(200, 192, 192, 192);
             this.Controls.Add(background); //Per far sì che il controllo sia presente
@@ -191,6 +209,11 @@ namespace CalcProject {
             background.BringToFront(); //Mette in primo piano il background
             insertingWindow.BringToFront(); //Mette in primo piano la finestra
         }
+
+        /// <summary>
+        /// Metodo che crea i controlli all'interno della finestra di inserimento.
+        /// </summary>
+        /// <param name="insertingWindow">Il pannello della finestra.</param>
         private void createInsertingControls(Panel insertingWindow) {
             //Semplicemente per dopo andare a scriver tutto con il foreach
             List<Object> insertingWindowObjects = new List<object>();
@@ -200,6 +223,7 @@ namespace CalcProject {
             #region exerciseName
             TextBox exerciseName = new TextBox();
             exerciseName.Size = new Size(200, 20);
+            exerciseName.Font = new Font("Calibri", 12, FontStyle.Regular);
             exerciseName.MaxLength = 30;
             exerciseName.Text = "Inserire il nome dell'esercizio";
             exerciseName.Name = "exerciseName";
@@ -211,7 +235,8 @@ namespace CalcProject {
             #endregion
             #region cbMinMax
             ComboBox cbMinMax = new ComboBox();
-            cbMinMax.Size = new Size(125, 20);
+            cbMinMax.Size = new Size(170, 20);
+            cbMinMax.Font = new Font("Calibri", 12, FontStyle.Regular);
             cbMinMax.Name = "cbMinMax";
             string[] tmp = { "Problema di Massimo", "Problema di Minimo" };
             cbMinMax.Items.AddRange(tmp);
@@ -227,6 +252,7 @@ namespace CalcProject {
             #region exerciseZ
             TextBox exerciseZ = new TextBox();
             exerciseZ.Size = new Size(375, 20);
+            exerciseZ.Font = new Font("Calibri", 12, FontStyle.Regular);
             exerciseZ.Text = "Inserire la Z del problema";
             exerciseZ.Name = "exerciseZ";
             exerciseZ.Location = new Point(
@@ -242,6 +268,7 @@ namespace CalcProject {
             TextBox exerciseFunctions = new TextBox();
             exerciseFunctions.Multiline = true;
             exerciseFunctions.Size = new Size(375, 100);
+            exerciseFunctions.Font = new Font("Calibri", 12, FontStyle.Regular);
             exerciseFunctions.Text = "Inserire le funzioni del problema (una per riga)";
             exerciseFunctions.Name = "exerciseFunctions";
             exerciseFunctions.Location = new Point(
@@ -256,7 +283,8 @@ namespace CalcProject {
 
             #region bClear
             Button bClear = new Button();
-            bClear.Size = new Size(125, 23);
+            bClear.Size = new Size(125, 30);
+            bClear.Font = new Font("Calibri", 12, FontStyle.Regular);
             bClear.Name = "bClear";
             bClear.Location = new Point(
                 insertingWindow.Size.Width / 10,
@@ -269,7 +297,8 @@ namespace CalcProject {
             #endregion
             #region bAnalize
             Button bAnalize = new Button();
-            bAnalize.Size = new Size(235, 23);
+            bAnalize.Size = new Size(235, 30);
+            bAnalize.Font = new Font("Calibri", 12, FontStyle.Regular);
             bAnalize.Name = "bAnalize";
             bAnalize.Location = new Point(
                 insertingWindow.Size.Width / 10 + bClear.Width + 5,
@@ -299,6 +328,11 @@ namespace CalcProject {
             foreach (var item in insertingWindowObjects) insertingWindow.Controls.Add(item as Control);
         }
 
+        /// <summary>
+        /// Metodo per la chiusura.
+        /// </summary>
+        /// <param name="sender">Ciò che attiva l'evento.</param>
+        /// <param name="e">Gli eventi del suddetto.</param>
         void closeInsertingWindow(object sender, EventArgs e) {
             //Metodo per chiudere la finestra dell'inserimento
             this.Controls["insertingWindow"].Dispose();
@@ -422,26 +456,26 @@ namespace CalcProject {
         }
         #endregion
 
-        /// <summary>
-        /// Questi metodi sono stati creati dato che vengono più e più volte
-        /// richiamati all'interno del programma per avere oggetti e array.
-        /// All'interno della sezione è possibile trovare (in ordine di apparizione):
-        ///     - GetNumber:            Vari metodi per la gestione dei numeri dentro la form.
-        ///     - getDG:                Ritorna il DataGridView attivo nel programma.
-        ///     - getColumn:            Restituisce la colonna richiesta.
-        ///     - getColumnByHeader:    Restituisce la colonna in base all'header.
-        ///     
-        /// </summary>
-        /// 
         #region Sezione metodi di richiesta
         #region GetNumber
+        /// <summary>
+        /// Metodo utilizzato per estrarre i numeri all'interno della stringa (solitamente datagridview).
+        /// </summary>
+        /// <param name="t">Stringa contente il numero.</param>
+        /// <returns></returns>
         double getNumber(string t) {
             t = t.Trim();
             if (t == "-M") 
                 return M = -table.MaxNumber*10000.00;
             double returner = itIsDivided(t) ? soDivideIt(t) : Convert.ToDouble(t);
-            return TruncateDecimal(returner, 2);
+            return TruncateDouble(returner, 2);
         }
+
+        /// <summary>
+        /// Controllo (non testato) sulla divisione dei numeri.
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
         bool itIsDivided(string t) {
             return t.Contains('\\');
         }
@@ -454,7 +488,19 @@ namespace CalcProject {
             return p;
         }
         #endregion
+
+        /// <summary>
+        /// Metodo per ricavare il datagridview attivo.
+        /// </summary>
+        /// <returns></returns>
         private DataGridView getDG() { return this.Controls["dg"] as DataGridView; }
+
+        /// <summary>
+        /// Metodo per estrapolare la colonna.
+        /// </summary>
+        /// <param name="dg">Datagridview da cui si deve estrapolare.</param>
+        /// <param name="columIndex">La colonna da cui si devono prendere i dati.</param>
+        /// <returns>Il primo valore è la cj, il resto è la colonna restante</returns>
         private double[] getColumn(DataGridView dg, int columIndex) {
             double[] ris;
             //Se l'indice è 0 gestisce la prima colonna in modo corretto
@@ -471,21 +517,12 @@ namespace CalcProject {
             return ris;
         }
 
-        private void writeRow(DataGridView dg, double[] newRow, int rowIndex) {
-            for (int i = 0; i < newRow.Length; i++) {
-                dg[i + 2, rowIndex].Value = newRow[i];
-            }
-        }
-        private double[] getRow(DataGridView dg, int rowIndex) {
-            double[] ris;
-            int select = table.nVariabiliArtificiali == 0 ? table.nVariabiliScarto - 1 : table.nVariabiliArtificiali - 1;
-            ris = new double[select];
-            for (int i = 0; i < select; i++) {
-                ris[i] = getNumber(dg[i + 2, rowIndex].Value.ToString());
-            }
-            return ris;
-        }
-
+        /// <summary>
+        /// Ricava l'indice della colonna in base all'header dato.
+        /// </summary>
+        /// <param name="dg">Datagridview da cui si deve estrapolare.</param>
+        /// <param name="s">Header richiesto.</param>
+        /// <returns></returns>
         private int getColumnByHeader(DataGridView dg, string s) {
             for (int i = 0; i < dg.Columns.Count; i++) {
                 if (dg.Columns[i].HeaderText == s) return i;
@@ -495,25 +532,13 @@ namespace CalcProject {
         #endregion
 
 
-        /// <summary>
-        /// Questi metodi sono stati creati per la generazione di tabelle
-        /// e la gestione delle stesse nel cambio di tabella e nei calcoli.
-        /// All'interno della sezione è possibile trovare (in ordine di apparizione):
-        ///     -createDataGrid:    Creazione dell'oggetto iniziale
-        ///     -writeHeaders:      Scrittura degli headers dell'oggetto
-        ///     -writeTableNumbers: Scrittura dei numeri nella tabella
-        ///     -writeB:            Scrittura della B
-        ///     -writeCb:           Scrittura della Cb
-        ///     -writeSab:          Scrittura della Sab
-        ///     -isBaseVar:         Controllo se la variabile è di base
-        ///     -enteringVar:       Calcolo variabile entrante
-        ///     -exitingVar:        Calcolo variabile uscente
-        ///     -calculateNewTable: Calcolo della tabella successiva
-        ///     -editBaseVar:       Sostituzione della variabile di base uscente con quella entrante
-        /// </summary>
-        ///
-        ///
         #region Sezione calcoli tabelle e simplessi
+
+        /// <summary>
+        /// Metodo scritto per comodità per l'avvio di più metodi.
+        /// </summary>
+        /// <param name="table">L'oggetto della tabella.</param>
+        /// <returns></returns>
         private DataGridView writeDG(cTable table) {
             this.table = table;
             DataGridView dg = createDataGrid(table);
@@ -525,15 +550,20 @@ namespace CalcProject {
             return dg;
         }
 
-        private void writeDG(DataGridView DG) {
-            this.Controls.RemoveByKey("dg");
-            DataGridView dg = DG;
-            this.Controls.Add(dg);
-        }
-
+        /// <summary>
+        /// Metodo per la creazione del DataGridView.
+        /// </summary>
+        /// <param name="table">L'oggetto della tabella.</param>
+        /// <returns></returns>
         private DataGridView createDataGrid(cTable table) {
             DataGridView dg = new DataGridView();
             dg.Name = "dg";
+            dg.ReadOnly = true;
+            dg.AllowUserToAddRows = false;
+            dg.AllowUserToDeleteRows = false;
+            dg.AllowUserToResizeColumns = false;
+            dg.AllowUserToResizeRows = false;
+            dg.Font = new Font("Calibri", 12, FontStyle.Regular);
             //CB, Base, Var decisionali + Var scarto, B
             int select = table.nVariabiliArtificiali == 0 ? table.nVariabiliScarto - 1 : table.nVariabiliArtificiali - 1;
             dg.ColumnCount = 3 + select;
@@ -548,8 +578,8 @@ namespace CalcProject {
 
             Control relativePosition = this.Controls["lstExercises"];
             Size relativeSize = new Size(375, 100); //La grandezza della textbox delle funzioni
-            dg.Location = new Point(relativePosition.Location.X + relativePosition.Width + 50, relativePosition.Height / 10);
-            dg.Size = new Size(relativeSize.Width + 80, relativeSize.Height + 80);
+            dg.Location = new Point(relativePosition.Location.X + relativePosition.Width + 30, relativePosition.Height / 10);
+            dg.Size = new Size(relativeSize.Width + 125, relativeSize.Height + 125);
             dg.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Left;
             dg.Columns[0].HeaderText = "Cb";
             dg.Columns[1].HeaderText = /* All your */"Base" /* are belong to us */;
@@ -561,6 +591,12 @@ namespace CalcProject {
             dg.Columns[select + 2].HeaderText = "b";
             return dg;
         }
+
+        /// <summary>
+        /// Metodo per scrivere gli headers (xn, SAB, Cj).
+        /// </summary>
+        /// <param name="table">Tabella da cui prendere i dati.</param>
+        /// <param name="dg">DataGridView in cui scrivere.</param>
         private static void writeHeaders(cTable table, DataGridView dg) {
             for (int i = 0; i < table.Functions.Length; i++) {
                 int index = table.Functions[i].IndexOf('<');
@@ -577,6 +613,12 @@ namespace CalcProject {
             dg[1, table.Functions.Length].Value = "Cj"; //GTA San Andreas cit.
             dg[1, table.Functions.Length + 1].Value = "SAB";
         }
+
+        /// <summary>
+        /// Metodo per scrivere i numeri all'interno del datagridview.
+        /// </summary>
+        /// <param name="t">Tabella da cui prendere i dati.</param>
+        /// <param name="dg">DataGridView in cui scrivere.</param>
         private void writeTableNumbers(cTable t, DataGridView dg) {
             for (int r = 0; r < t.Functions.Length; r++) {
                 //t.nVars per far si che riempisse tutte le caselle delle var decisionali
@@ -627,11 +669,23 @@ namespace CalcProject {
                 }
             }
         }
+
+        /// <summary>
+        /// Metodo per scrivere la B. (Ultima colonna)
+        /// </summary>
+        /// <param name="t">Tabella da cui prendere i dati.</param>
+        /// <param name="dg">DataGridView in cui scrivere.</param>
         private static void writeB(cTable t, DataGridView dg) {
             for (int r = 0; r < t.Vars.Count; r++) {
                 dg[dg.Columns.Count - 1, r].Value = t.Vars[r][t.Vars[r].Length - 1];
             }
         }
+
+        /// <summary>
+        /// Metodo per scrivere le variabili di base.
+        /// </summary>
+        /// <param name="t">Tabella da cui prendere i dati.</param>
+        /// <param name="dg"><DataGridView in cui scrivere.</param>
         private void writeCb(cTable t, DataGridView dg) {
             for (int r = 0; r < t.Functions.Length; r++) {
                 string str = dg[1, r].Value.ToString();
@@ -640,6 +694,11 @@ namespace CalcProject {
                 dg[0, r].Value = dg[column, row].Value;
             }
         }
+
+        /// <summary>
+        /// Metodo per scrivere la SAB.
+        /// </summary>
+        /// <param name="dg">DataGridView in cui scrivere.</param>
         private void writeSab(DataGridView dg) {
             int sabIndex = dg.RowCount - 1;
             for (int c = 2; c < dg.ColumnCount - 1; c++) {
@@ -652,6 +711,13 @@ namespace CalcProject {
             }
         }
 
+        /// <summary>
+        /// Calcola la nuova tabella con il metodo di Gauss.
+        /// </summary>
+        /// <param name="dg">DataGridView in cui scrivere.</param>
+        /// <param name="pivot">Numero pivot.</param>
+        /// <param name="colonnaPivot">Colonna del numero pivot.</param>
+        /// <param name="rigaPivot">Riga del numero pivot.</param>
         private void calculateGauss(DataGridView dg, double pivot, int colonnaPivot, int rigaPivot) {
             for (int r = 0; r < dg.RowCount - 2; r++) {
                 double coefficienteAnnulamento = -Convert.ToDouble(dg[colonnaPivot, r].Value);
@@ -697,6 +763,12 @@ namespace CalcProject {
             //}
         }
 
+        /// <summary>
+        /// Metodo per determinare se è una variabile di base.
+        /// </summary>
+        /// <param name="dg">DataGridView da cui prendere i dati.</param>
+        /// <param name="s">Variabile da verificare.</param>
+        /// <returns></returns>
         private int isBaseVar(DataGridView dg, string s) {
             //Questo metodo prende le stringhe nella prima colonna
             //e le compara con la stringa richiesta
@@ -706,6 +778,12 @@ namespace CalcProject {
             }
             return -1;
         }       
+
+        /// <summary>
+        /// Metodo per determinare la variabile entrante.
+        /// </summary>
+        /// <param name="dg">DataGridView da cui prendere i dati.</param>
+        /// <returns></returns>
         private string enteringVar(DataGridView dg) {
             int dc = table.nVariabili;
             int select = table.nVariabiliArtificiali == 0 ? table.nVariabiliScarto - 1 : table.nVariabiliArtificiali - 1;
@@ -741,6 +819,13 @@ namespace CalcProject {
             }
             else { MessageBox.Show("Non è più possibile andare avanti."); return "fine"; }
         }
+
+        /// <summary>
+        /// Metodo per la determinazione della variabile uscente.
+        /// </summary>
+        /// <param name="dg">Datagridview da cui prendere i dati.</param>
+        /// <param name="enteringVar">Variabile entrante.</param>
+        /// <returns></returns>
         private string[] exitingVar(DataGridView dg, string enteringVar) {
             int dc = table.nVariabili;
             int select = table.nVariabiliArtificiali == 0 ? table.nVariabiliScarto - 1 : table.nVariabiliArtificiali - 1;
@@ -766,14 +851,28 @@ namespace CalcProject {
             return returner;
         }
 
+        /// <summary>
+        /// Metodo per calcolare la nuova tabella risultato della variabile entrante e uscente.
+        /// </summary>
+        /// <param name="dg">Datagridview da cui prendere i dati.</param>
+        /// <param name="enteringVar">Variabile entrante.</param>
+        /// <param name="exitingVar">Variabile uscente.</param>
+        /// <param name="pivot">Pivot</param>
         private void calculateNewTable(DataGridView dg, string enteringVar, string exitingVar, string pivot) {
-            table.addDG(dg);
             int rowIndex = editBaseVar(dg, enteringVar, exitingVar);
             if (rowIndex == -1) return;
             for (int i = 0; i < dg.ColumnCount - 2; i++) {
                 dg[i + 2, rowIndex].Value = getNumber(dg[i + 2, rowIndex].Value.ToString()) / getNumber(pivot);
             }
         }
+
+        /// <summary>
+        /// Scrittura delle nuove variabili di base
+        /// </summary>
+        /// <param name="dg">Datagridview in cui scrivere.</param>
+        /// <param name="enteringVar">Variabile entrante.</param>
+        /// <param name="exitingVar">Variabile uscente.</param>
+        /// <returns></returns>
         private int editBaseVar(DataGridView dg, string enteringVar, string exitingVar) {
             for (int i = 0; i < dg.RowCount; i++) {
                 if (dg[1, i].Value.ToString() == exitingVar) { dg[1, i].Value = enteringVar; return i; }
@@ -781,7 +880,6 @@ namespace CalcProject {
             return -1;
         }
         #endregion
-
 
         private void button2_Click(object sender, EventArgs e) {
             showInsertingWindow();
@@ -862,25 +960,33 @@ namespace CalcProject {
             }
         }
 
+        /// <summary>
+        /// Metodo per creare i bottoni e le label sotto il DataGridView.
+        /// </summary>
+        /// <param name="dg">DataGridView a cui fare riferimento.</param>
         private void createControlsUnderDG(DataGridView dg) {
             Button bNext, bEnd;
             bNext = new Button();
+            bNext.Font = new Font("Calibri", 12, FontStyle.Regular);
             bNext.Name = "bNext";
             bNext.Text = ">";
+            bNext.Size = new Size(bNext.Width, bNext.Height + 10);
             bNext.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) + 80, dg.Location.Y + dg.Height + 5);
             this.Controls.Add(bNext);
             bNext.Click += bNext_Click;
 
             bEnd = new Button();
+            bEnd.Font = new Font("Calibri", 12, FontStyle.Regular);
             bEnd.Name = "bEnd";
             bEnd.Text = "Tenta di finire l'esercizio";
-            bEnd.Size = new Size(175, bEnd.Height);
+            bEnd.Size = new Size(175, bEnd.Height + 10);
             bEnd.Location = new Point(dg.Location.X + (this.Size.Width / 2 - dg.Location.X) - bEnd.Width + 75, dg.Location.Y + dg.Height + 5);
             bEnd.Enabled = true;
             this.Controls.Add(bEnd);
             bEnd.Click += bEnd_Click;
 
             Label labelEntrante = new Label();
+            labelEntrante.Font = new Font("Calibri", 12, FontStyle.Regular);
             labelEntrante.AutoSize = true;
             labelEntrante.Name = "labelEntrante";
             labelEntrante.Text = "";
@@ -888,6 +994,7 @@ namespace CalcProject {
             this.Controls.Add(labelEntrante);
 
             Label labelUscente = new Label();
+            labelUscente.Font = new Font("Calibri", 12, FontStyle.Regular);
             labelUscente.AutoSize = true;
             labelUscente.Name = "labelUscente";
             labelUscente.Text = "";
@@ -895,6 +1002,7 @@ namespace CalcProject {
             this.Controls.Add(labelUscente);
 
             Label labelFine = new Label();
+            labelFine.Font = new Font("Calibri", 12, FontStyle.Regular);
             labelFine.AutoSize = true;
             labelFine.Name = "labelFine";
             labelFine.Text = "";
@@ -938,7 +1046,11 @@ namespace CalcProject {
                     MessageBox.Show("Seleziona un file adatto a come scritto nella guida");
                 }
                 else {
-                    if (errore != null) { MessageBox.Show(errore); return; }
+                    if (errore != null) 
+                    { 
+                        MessageBox.Show(errore); 
+                        return; 
+                    }
                     Tables.Add(table);
 
                     if (existsControl("button2") && existsControl("label1") && existsControl("button3")) {
@@ -977,29 +1089,8 @@ namespace CalcProject {
             }
         }
 
-
-        
-
-
-
-
-
-
-
-
-
-
-
-        
-
-        
-        
-
-        
-
-
-
-
-        
+        private void aiutoToolStripMenuItem_Click(object sender, EventArgs e) {
+            System.Diagnostics.Process.Start("Guida.pdf");
+        }
     }
 }
